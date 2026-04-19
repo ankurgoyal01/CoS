@@ -4,7 +4,7 @@
 #
 # Prerequisites:
 #   1. Run sf-auth.js once to save your session:
-#        node ~/CoS/scripts/salesforce/sf-auth.js
+#        node ~/CoS/projects/SFDC/scripts/salesforce/sf-auth.js
 #   2. Session stored at ~/.salesforce-session.json
 #
 # Usage:
@@ -35,7 +35,7 @@ echo "========================================"
 # ── Check session file exists ─────────────────────────────────────────────────
 if [ ! -f "$SESSION_FILE" ]; then
   echo "ERROR: No saved session found at $SESSION_FILE"
-  echo "Run this first: node ~/CoS/scripts/salesforce/sf-auth.js"
+  echo "Run this first: node ~/CoS/projects/SFDC/scripts/salesforce/sf-auth.js"
   exit 1
 fi
 
@@ -97,7 +97,7 @@ async function checkSessionValid(page) {
   // If session expired, Salesforce redirects to login page
   const url = page.url();
   if (url.includes('/login') || url.includes('login.salesforce.com')) {
-    console.error('Session expired. Run: node ~/CoS/scripts/salesforce/sf-auth.js');
+    console.error('Session expired. Run: node ~/CoS/projects/SFDC/scripts/salesforce/sf-auth.js');
     process.exit(1);
   }
 }
