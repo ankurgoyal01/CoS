@@ -1,0 +1,248 @@
+---
+name: standup-brief
+version: 2.1
+description: >
+  On-demand standup brief for Ankur Goyal's SFDC + GSOIT engineering teams.
+  Chains 5 live data sources autonomously — Jira blockers, Asana overdue,
+  Gmail priority unread, Calendar conflicts, then creates an Asana task
+  with the full brief summary. No confirmation or babysitting between steps.
+  Single command, single output, one Asana task created.
+
+  Trigger phrases (any of these starts the full chain):
+  - "standup", "morning brief", "team status", "team update"
+  - "what's the team working on", "what's blocked", "any blockers today"
+  - "what needs my attention", "daily brief", "quick standup"
+  - "full standup", "partial standup", "run the standup"
+---
+
+# Standup Brief Skill — v2.1
+
+## What this skill does
+
+Runs a 5-step chain sequentially, without stopping for confirmation, and:
+1. Pulls live data from 4 sources
+2. Produces a single formatted brief
+3. Creates an Asana task in Ankur's My Tasks with the full brief as the task description
+
+**Chain order (fixed — do not reorder):**
+1. Jira — blockers and in-progress across SFDC + GSOIT
+2. Asana — overdue or urgent tasks assigned to Ankur or his team
+3. Gmail — priority unread requiring action today
+4. Calendar — conflicts or back-to-back meetings that need attention
+5. Asana task creation — create daily standup record in My Tasks
+
+---
+
+## Chain execution rules
+
+- **Run all 5 steps unconditionally.** Do not stop after any step.
+- **Do not ask for permission between steps.** The trigger phrase is the permission.
+- **Do not narrate what you're doing.** Silent execution, single output.
+- **Do not wait for the user to say "continue"** after any step.
+- If a source returns no data, output "None" for that section — do not skip it.
+- If an MCP call fails, note the failure inline and continue to the next source.
+- Step 5 (Asana task creation) runs after the brief is fully assembled.
+- Total execution target: under 90 seconds.
+
+---
+
+## Step 1 — Jira (SFDC + GSOIT boards)
+
+**MCP:** Atlassian MCP — Jira
+
+### 1a. Blocked tickets — both boards
+```
+JQL: project in (SFDC, GSOIT) AND sprint in openSprints() AND status = Blocked ORDER BY priority ASC
+```
+
+### 1b. Reopened tickets — both boards
+```
+JQL: project in (SFDC, GSOIT) AND sprint in openSprints() AND status = Reopened
+```
+
+### 1c. In Progress — by person, both boards
+```
+JQL: project in (SFDC, GSOIT) AND sprint in openSprints() AND status = "In Progress" ORDER BY assignee ASC
+```
+
+### 1d. Stale tickets — no update in 2+ days
+```
+JQL: project in (SFDC, GSOIT) AND sprint in openSprints() AND status not in (Done, Cancelled) AND updated < -2d
+```
+
+**Format rules:**
+- Blockers and Reopened → always at the top with ticket key + assignee + one-line summary
+- In Progress → grouped by person, one line per ticket
+- Stale → list only if more than 3 exist
+- Flag any AI workstream tickets (AI, agent, genie, MCP in summary)
+
+---
+
+## Step 2 — Asana
+
+**MCP:** Asana MCP
+
+**Pull:**
+- Tasks assigned to Ankur Goyal that are overdue or due today
+- Tasks in SFDC or GSOIT Asana projects that are overdue with no recent update
+- Any tasks where Ankur is mentioned in a comment in the last 24 hours
+
+**Format rules:**
+- One line per task: task name · due date · owner
+- Group by: Overdue → Due today → Mentioned
+- Skip Complete or Archived tasks
+
+---
+
+## Step 3 — Gmail
+
+**MCP:** Gmail MCP
+
+**Pull:**
+- Unread emails marked Important in the last 48 hours
+- Unread emails from: Dennis Bertelkamp, Michal Jilka, Chris Hill, Maciej Kołodziej, Josef Sima, Zeph Buck, Samuel Garcia Rio
+- Emails with: "blocker", "urgent", "action required", "approval", "escalation", "prod", "incident" in subject
+
+**Format rules:**
+- Maximum 5 items — most action-critical only
+- Each item: sender · subject (60 chars max) · one-line summary · action tag
+- Tags: [Reply needed] [FYI] [Approval] [Escalation]
+- Skip newsletters, automated Asana/Jira notifications, calendar invites
+
+---
+
+## Step 4 — Calendar
+
+**MCP:** Google Calendar MCP
+
+**Pull for today:**
+- All events from now until end of day (IST)
+- Flag: back-to-back meetings < 5 min gap
+- Flag: meetings with no agenda
+- Flag: overlapping events
+
+**Format rules:**
+- List remaining meetings: time (IST) · name · duration · flags
+- Do not list focus time blocks or OOO markers
+- If clear for next 2 hours → note as build window
+
+---
+
+## Step 5 — Create Asana Task (daily standup record)
+
+**MCP:** Asana MCP
+**Runs:** After the full brief is assembled from Steps 1–4
+**Purpose:** Persistent daily record of the standup in Asana, searchable and reviewable later
+
+### Task spec:
+- **Name:** `Standup Brief — [Day, Date e.g. Mon, Apr 14]`
+- **Assignee:** Ankur Goyal (me)
+- **Due date:** Today's date
+- **Description:** The complete formatted standup brief from Steps 1–4, in plain text
+
+### What goes in the description:
+```
+Auto-generated standup brief — [Date] · [Time IST]
+Generated by: standup-brief skill v2.1
+
+=== BLOCKERS & URGENT ===
+[Section 1 content]
+
+=== IN PROGRESS — BY PERSON ===
+[Section 2 content — SFDC, GSOIT, AI workstreams]
+
+=== ASANA — OVERDUE OR DUE TODAY ===
+[Section 3 content]
+
+=== EMAIL — NEEDS ACTION TODAY ===
+[Section 4 content]
+
+=== CALENDAR — TODAY ===
+[Section 5 content]
+
+=== MY FOCUS FOR TODAY ===
+[Focus bullets]
+```
+
+### Creation rules:
+- Create in Ankur's My Tasks (workspace: groupon.com, assignee: me)
+- Do NOT add to any project — My Tasks only
+- Do NOT ask for confirmation — create immediately after brief is assembled
+- If creation fails, note the failure at the end of the brief output and continue
+- One task per day — name includes the date so duplicates are identifiable
+
+---
+
+## Output format
+
+Produce this structure in chat. The Asana task is created silently — no separate announcement, just append a single line at the end:
+
+```
+## Standup brief — [Day, Date] · [Time IST]
+
+### Blockers & urgent — action needed now
+- [SFDC/GSOIT] TICKET-XXXX · [Assignee] · [One-line issue] · [What's blocking it]
+- ... (or: None)
+
+### In progress — by person
+
+**SFDC**
+- [Name]: TICKET-XXXX — [summary] · [TICKET-XXXX — summary]
+
+**GSOIT**
+- [Name]: TICKET-XXXX — [summary]
+
+**AI workstreams**
+- TICKET-XXXX · [Assignee] · [summary] · Status: [status]
+
+### Asana — overdue or due today
+- [Task name] · Due [date] · Owner: [name] · [action tag]
+- ... (or: None)
+
+### Email — needs action today
+- [Sender] · "[Subject]" · [One-line: what's needed] · [action tag]
+- ... (or: None)
+
+### Calendar — today
+- [HH:MM] [Meeting name] ([duration]) [flags if any]
+- Free window: [time range] — [use this for: ...]
+
+### My focus for today
+- [Priority 1]
+- [Priority 2]
+- [Priority 3]
+
+---
+_Standup task created in Asana: [task name] · [date]_
+```
+
+---
+
+## Partial standup variants
+
+- "just Jira" / "email only" → run only that step, no Asana task created
+- "quick standup" → run all steps, truncate each to 3 items, still create Asana task
+
+---
+
+## Auto-run setup (Claude Code + cron)
+
+When running via `standup.sh` (Claude Code headless), the Asana task creation
+uses the Asana MCP API directly — no UI confirmation required. See `standup.sh`.
+
+Cron schedule for 9:30 AM IST (4:00 AM UTC):
+```
+0 4 * * 1-5 /path/to/standup.sh >> ~/standup-logs/standup.log 2>&1
+```
+
+---
+
+## Skill notes
+
+- Sprint context: SFDC (Apr 10–Apr 23), GSOIT (Apr 8–Apr 22) — Q2 Sprint 1
+- Always check SFDC-10103, SFDC-10055 (Niveditha INTL CDA — recurring blockers)
+- Always check GSOIT-6369 (Cyclops latency — Datta — do not clear until resolved)
+- AI workstreams to always surface: SFDC-10144, SFDC-10161, GSOIT-6331, GSOIT-6332, GSOIT-6334
+- **Never create calendar events as part of this or any workflow**
+- Asana user GID: 1211542692184092
+- Asana workspace GID: 8437193015852

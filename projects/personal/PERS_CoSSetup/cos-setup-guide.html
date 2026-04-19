@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chief of Stuff — Setup Guide</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3345;
+    --text: #e1e4ed;
+    --text-muted: #8b90a0;
+    --accent: #6c8cff;
+    --green: #4ade80;
+    --red: #f87171;
+    --orange: #fb923c;
+    --yellow: #fbbf24;
+    --cyan: #22d3ee;
+    --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+
+  /* Header */
+  .hero { text-align: center; margin-bottom: 3rem; padding: 2rem 0; }
+  .hero h1 { font-size: 2.4rem; font-weight: 800; color: #fff; margin-bottom: 0.3rem; }
+  .hero .subtitle { font-size: 1.2rem; color: var(--accent); margin-bottom: 1rem; }
+  .hero .meta { font-size: 0.85rem; color: var(--text-muted); }
+
+  /* Typography */
+  h2 {
+    font-size: 1.5rem; font-weight: 700; color: #fff;
+    margin: 3rem 0 1rem; padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+    display: flex; align-items: center; gap: 0.8rem;
+  }
+  h3 { font-size: 1.15rem; font-weight: 600; color: var(--accent); margin: 1.8rem 0 0.8rem; }
+  h4 { font-size: 1rem; font-weight: 600; color: var(--yellow); margin: 1.2rem 0 0.5rem; }
+  p { margin-bottom: 1rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  strong { color: #fff; }
+
+  /* Step number circles */
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-weight: 800; font-size: 1.1rem; flex-shrink: 0;
+  }
+  .step-num.intro { background: var(--purple); }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-green { border-left: 4px solid var(--green); }
+  .card-yellow { border-left: 4px solid var(--yellow); }
+  .card-red { border-left: 4px solid var(--red); }
+  .card-accent { border-left: 4px solid var(--accent); }
+  .card-purple { border-left: 4px solid var(--purple); }
+  .card-cyan { border-left: 4px solid var(--cyan); }
+  .card-title { font-weight: 700; margin-bottom: 0.4rem; }
+  .card-green .card-title { color: var(--green); }
+  .card-yellow .card-title { color: var(--yellow); }
+  .card-red .card-title { color: var(--red); }
+  .card-accent .card-title { color: var(--accent); }
+  .card-purple .card-title { color: var(--purple); }
+  .card-cyan .card-title { color: var(--cyan); }
+  .card-body { color: var(--text-muted); font-size: 0.92rem; }
+
+  /* Code blocks */
+  .code-block {
+    position: relative;
+    background: #161822;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 0.8rem 0 1.2rem;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--cyan);
+  }
+  .copy-btn {
+    position: absolute; top: 6px; right: 6px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-muted); border-radius: 5px;
+    padding: 3px 10px; font-size: 0.75rem; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .copy-btn.copied { background: var(--green); color: #000; border-color: var(--green); }
+  .download-banner {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+    text-align: center;
+  }
+  .download-banner p { margin-bottom: 0.8rem; color: var(--text-muted); font-size: 0.95rem; }
+  .download-btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.7rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .download-btn:hover { background: #8aa4ff; text-decoration: none; }
+  .download-btn svg { vertical-align: middle; margin-right: 0.5rem; }
+  code {
+    background: var(--surface2); padding: 0.15rem 0.4rem;
+    border-radius: 4px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.88em; color: var(--cyan);
+  }
+
+  /* Platform tabs */
+  .platform-tabs {
+    display: flex; gap: 0; margin: 1rem 0 0;
+    border-bottom: 2px solid var(--border);
+  }
+  .platform-tab {
+    padding: 0.5rem 1.2rem; cursor: pointer;
+    color: var(--text-muted); font-weight: 600; font-size: 0.9rem;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px; transition: all 0.2s;
+    background: none; border-top: none; border-left: none; border-right: none;
+  }
+  .platform-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .platform-tab:hover { color: var(--text); }
+  .platform-content { display: none; padding: 1rem 0; }
+  .platform-content.active { display: block; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  th {
+    background: var(--surface2); text-align: left;
+    padding: 0.6rem 0.8rem; font-weight: 600; color: var(--accent);
+    border-bottom: 2px solid var(--border);
+  }
+  td { padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: rgba(108,140,255,0.04); }
+
+  /* Lists */
+  ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+  li { margin-bottom: 0.4rem; }
+
+  /* Alerts */
+  .alert {
+    border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  .alert-green { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.2); color: var(--green); }
+  .alert-yellow { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.2); color: var(--yellow); }
+  .alert-red { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); color: var(--red); }
+  .alert-label { font-weight: 700; margin-right: 0.5rem; }
+
+  /* Glossary */
+  .glossary-term {
+    display: flex; gap: 1rem; padding: 0.8rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .glossary-term:last-child { border-bottom: none; }
+  .glossary-name { font-weight: 700; color: var(--cyan); min-width: 180px; flex-shrink: 0; }
+  .glossary-def { color: var(--text-muted); font-size: 0.92rem; }
+  .glossary-why { color: var(--text); font-size: 0.88rem; margin-top: 0.2rem; }
+
+  /* TOC */
+  .toc {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.5rem 2rem; margin: 2rem 0;
+  }
+  .toc h3 { margin-top: 0; color: #fff; }
+  .toc ol { padding-left: 1.2rem; }
+  .toc li { margin-bottom: 0.3rem; }
+  .toc a { color: var(--text-muted); font-size: 0.92rem; }
+  .toc a:hover { color: var(--accent); }
+
+  /* Flow diagram */
+  .flow {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.3rem; flex-wrap: wrap; margin: 1.5rem 0;
+    font-size: 0.9rem; font-weight: 600;
+  }
+  .flow-step {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 0.5rem 1rem; border-radius: 8px;
+  }
+  .flow-arrow { color: var(--text-muted); font-size: 1.2rem; }
+  .flow-step.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Tree */
+  .tree {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.85rem; line-height: 1.6;
+    background: #161822; border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0;
+    overflow-x: auto;
+  }
+  .tree .comment { color: var(--text-muted); }
+  .tree .folder { color: var(--yellow); }
+  .tree .file { color: var(--cyan); }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.8rem; }
+    .glossary-term { flex-direction: column; gap: 0.2rem; }
+    .glossary-name { min-width: auto; }
+    .platform-tabs { flex-wrap: wrap; }
+    body { padding: 1rem 0.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ============ HERO ============ -->
+<div class="hero">
+  <h1>Chief of Stuff</h1>
+  <div class="subtitle">Setup Guide</div>
+  <div class="meta">Your AI-powered command center, from zero to running</div>
+</div>
+
+<div class="download-banner">
+  <p>Download the reference CoS workspace to get started — includes all skills, hooks, and folder structure.</p>
+  <a href="cos-setup.zip" class="download-btn" download>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Download cos-setup.zip
+  </a>
+</div>
+
+<!-- ============ TOC ============ -->
+<div class="toc">
+  <h3>What's in this guide</h3>
+  <ol>
+    <li><a href="#ch1">What is Chief of Stuff?</a></li>
+    <li><a href="#ch2">Glossary — terms you'll encounter</a></li>
+    <li><a href="#ch3">What you need</a></li>
+    <li><a href="#ch4">Step 1: Install the basics + YOLO mode</a></li>
+    <li><a href="#ch5">Step 2: Set up VS Code</a></li>
+    <li><a href="#ch6">Step 3: Create your workspace</a></li>
+    <li><a href="#ch7">Step 4: Organize your projects</a></li>
+    <li><a href="#ch8">Step 5: Install plugins</a></li>
+    <li><a href="#ch9">Step 6: Connect your services</a></li>
+    <li><a href="#ch10">Step 7: Set up second opinions</a></li>
+    <li><a href="#ch11">How CoS works — skills, rules, hooks & workflows</a></li>
+    <li><a href="#ch12">Your first real task</a></li>
+    <li><a href="#ch13">What's in the reference repo</a></li>
+    <li><a href="#ch14">Tips & troubleshooting</a></li>
+  </ol>
+</div>
+
+<!-- ============ CHAPTER 1 ============ -->
+<h2 id="ch1"><span class="step-num intro">1</span> What is Chief of Stuff?</h2>
+
+<p>Chief of Stuff (CoS) is a personal AI-powered command center. You set it up once on your computer, and then you have an assistant that can read your emails, manage your tasks, write documents, analyze data, review architecture, and automate any workflow you can describe in plain language.</p>
+
+<p>It's built on <strong>Claude Code</strong> — Anthropic's AI agent that runs in your terminal. But instead of using Claude as a blank slate every time, CoS gives it structure: instructions on how to work, memory that persists across sessions, reusable workflow templates, and connections to all the services you use.</p>
+
+<p>Think of it this way: Claude Code is the engine. CoS is the car you build around it — steering wheel, navigation, cargo space, and all.</p>
+
+<div class="card card-green" style="border-left-width:4px; margin:1.5rem 0">
+  <div class="card-title" style="font-size:1.1rem">The Core Idea: English Is Your Programming Language</div>
+  <div class="card-body">
+    Throughout this guide, you'll notice something: <strong>most steps are just telling Claude what to do in plain English.</strong> You don't need to memorize terminal commands, file paths, or configuration syntax. You describe what you want, and Claude does it.<br><br>
+    The only things you need to do manually are: <strong>install 4 programs</strong> (Node.js, Git, VS Code, Claude Code) and <strong>copy one settings file</strong> from the reference zip. Everything else — creating folders, writing files, installing plugins, connecting services — you just ask Claude.
+  </div>
+</div>
+
+<h3>What can you do with it?</h3>
+
+<div class="card card-green">
+  <div class="card-title">Management & Executive Work</div>
+  <div class="card-body">"Process my unread Asana notification emails, categorize tasks by urgency, and create an HTML dashboard." — Claude reads 37 emails, extracts task IDs, fetches details from Asana, and delivers a color-coded interactive report. In about 5 minutes, no manual sorting.</div>
+</div>
+
+<div class="card card-accent">
+  <div class="card-title">Technical Leadership</div>
+  <div class="card-body">"Review our QA documentation against modern best practices and rate each document." — Claude reads 8 internal docs, analyzes them, sends them to 3 different AI reviewers for independent feedback, and delivers a structured review with ratings, strengths, weaknesses, and an action plan.</div>
+</div>
+
+<div class="card card-purple">
+  <div class="card-title">General Productivity</div>
+  <div class="card-body">"Research our competitor's pricing strategy and draft a comparison analysis." — Claude searches the web, reads documents, synthesizes findings, and produces a structured report. You refine it in conversation: "Make the executive summary shorter. Add a risk section."</div>
+</div>
+
+<!-- ============ CHAPTER 2 ============ -->
+<h2 id="ch2"><span class="step-num intro">2</span> Glossary</h2>
+
+<p>You'll encounter these terms throughout the guide. All explained in plain English — no prior knowledge needed.</p>
+
+<div class="card">
+  <div class="glossary-term" id="gl-terminal">
+    <div class="glossary-name">Terminal / Command Line</div>
+    <div>
+      <div class="glossary-def">A text-based interface on your computer where you type commands instead of clicking buttons. On Mac it's called "Terminal", on Windows it's "Command Prompt" or "PowerShell".</div>
+      <div class="glossary-why">This is where you'll run Claude Code and type your instructions.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-git">
+    <div class="glossary-name">Git</div>
+    <div>
+      <div class="glossary-def">A tool that tracks every change you make to your files — like an infinite undo button with bookmarks. When you "commit," you save a snapshot you can always go back to.</div>
+      <div class="glossary-why">CoS uses Git to safely track your work. If anything goes wrong, you can always revert.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-repo">
+    <div class="glossary-name">Repository (repo)</div>
+    <div>
+      <div class="glossary-def">A project folder that's being tracked by Git. Every project in CoS is its own repository.</div>
+      <div class="glossary-why">Each of your projects gets its own repo so changes in one project don't affect another.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-cli">
+    <div class="glossary-name">CLI</div>
+    <div>
+      <div class="glossary-def">Command Line Interface — a program you interact with by typing commands (as opposed to clicking buttons in a graphical app).</div>
+      <div class="glossary-why">Claude Code, Codex, and Gemini are all CLIs. You type, they respond.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-node">
+    <div class="glossary-name">Node.js / npm</div>
+    <div>
+      <div class="glossary-def">Node.js is a program that runs JavaScript on your computer. npm (Node Package Manager) is its app store — it lets you install tools like Claude Code.</div>
+      <div class="glossary-why">You need Node.js installed so you can install Claude Code via npm.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-vscode">
+    <div class="glossary-name">VS Code</div>
+    <div>
+      <div class="glossary-def">Visual Studio Code — a free code editor made by Microsoft. Think of it as a smart text editor with a built-in terminal and file browser.</div>
+      <div class="glossary-why">Your main workspace. You'll see your files on the left, edit documents in the center, and talk to Claude in the bottom terminal.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-claudemd">
+    <div class="glossary-name">CLAUDE.md</div>
+    <div>
+      <div class="glossary-def">A special file that tells Claude how to behave in your workspace. It contains your preferences, rules, and conventions. Claude reads this file at the start of every session.</div>
+      <div class="glossary-why">This is the brain of your CoS — it's how Claude knows your style, your projects, and your expectations.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-mcp">
+    <div class="glossary-name">MCP Server</div>
+    <div>
+      <div class="glossary-def">Model Context Protocol — a bridge that connects Claude to an external service. For example, an MCP server for Gmail lets Claude read your emails. One for Asana lets Claude manage your tasks.</div>
+      <div class="glossary-why">Without MCP servers, Claude can only work with files on your computer. With them, it can reach out to Gmail, Jira, Asana, and more.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-plugin">
+    <div class="glossary-name">Plugin</div>
+    <div>
+      <div class="glossary-def">An add-on that gives Claude new capabilities — like browser automation, code review tools, or connections to specific services.</div>
+      <div class="glossary-why">Plugins extend what Claude can do. Install only the ones you need.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-skill">
+    <div class="glossary-name">Skill</div>
+    <div>
+      <div class="glossary-def">A reusable workflow template that you create for Claude. It's a file with instructions that Claude follows when you invoke the skill — like a recipe for a specific task.</div>
+      <div class="glossary-why">Skills let you automate recurring workflows. Create one for "weekly email digest" and Claude follows the same process every week.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-hook">
+    <div class="glossary-name">Hook</div>
+    <div>
+      <div class="glossary-def">A script that runs automatically when something happens — for example, every time you start a new Claude session, or every time you type a prompt. Hooks can inject reminders, log actions, or enforce workflows.</div>
+      <div class="glossary-why">Hooks automate things Claude would otherwise forget. They're the enforcement layer — instructions written as prose get skipped; hooks that fire on every action don't.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-rule">
+    <div class="glossary-name">Rule</div>
+    <div>
+      <div class="glossary-def">A file in <code>.claude/rules/</code> that gets injected into Claude's system prompt on every message. Unlike CLAUDE.md instructions (which can get lost in long files), rules are always visible to Claude.</div>
+      <div class="glossary-why">Rules enforce behavior more reliably than prose instructions. Use them for things Claude must never skip — like invoking the right skill before acting.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-subagent">
+    <div class="glossary-name">Subagent</div>
+    <div>
+      <div class="glossary-def">A separate Claude worker that gets spawned to handle a specific subtask. The main Claude stays focused on the big picture while subagents handle research, analysis, or parallel work.</div>
+      <div class="glossary-why">Subagents let Claude do multiple things at once — like researching three topics simultaneously.</div>
+    </div>
+  </div>
+  <div class="glossary-term" id="gl-secondopinion">
+    <div class="glossary-name">Second Opinion</div>
+    <div>
+      <div class="glossary-def">Sending your work (a plan, analysis, or document) to other AI models for independent review. They point out blind spots, challenge assumptions, and suggest improvements.</div>
+      <div class="glossary-why">Different AI models think differently. Getting multiple perspectives catches mistakes that one model alone would miss.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CHAPTER 3 ============ -->
+<h2 id="ch3"><span class="step-num intro">3</span> What You Need</h2>
+
+<h3>Claude Code Plan</h3>
+<p>You need a paid Claude subscription to use Claude Code. Here are your options:</p>
+
+<table>
+  <thead>
+    <tr><th>Plan</th><th>Price</th><th>Claude Code</th><th>Usage</th><th>Best for</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Free</td><td>$0</td><td style="color:var(--red)">No</td><td>—</td><td>Trying Claude chat only</td></tr>
+    <tr><td><strong>Pro</strong></td><td>$20/mo</td><td style="color:var(--green)">Yes</td><td>Base limits, resets every 5-8 hours</td><td>Testing the waters</td></tr>
+    <tr><td><strong>Max 5x</strong></td><td>$100/mo</td><td style="color:var(--green)">Yes</td><td>5x Pro limits, resets weekly</td><td>The Builder plan — where you'll land</td></tr>
+    <tr><td><strong>Max 20x</strong></td><td>$200/mo</td><td style="color:var(--green)">Yes</td><td>20x Pro limits, resets weekly</td><td>Heavy parallel work, power users</td></tr>
+  </tbody>
+</table>
+
+<div class="alert alert-yellow"><span class="alert-label">Recommendation:</span> Start with Pro ($20/mo) to get your feet wet. Once you start using CoS for real work, you <strong>will</strong> hit the Pro limits — usually within the first week. That's your signal to upgrade to <strong>Max 5x ($100/mo)</strong>, which is the natural home for anyone actively building with CoS. Think of Pro as the trial and Max 5x as the real subscription.</div>
+
+<p><strong>What uses up your quota?</strong> Every message you send and receive counts. Spawning <a href="#gl-subagent">subagents</a> for parallel work uses more. Long, complex conversations use more than quick questions. Think of it like a cell phone data plan — Pro gives you enough to explore, Max 5x gives you enough to actually work.</p>
+
+<h3>Hardware</h3>
+<ul>
+  <li><strong>Mac:</strong> macOS 12 (Monterey) or newer</li>
+  <li><strong>Windows:</strong> Windows 10 or Windows 11</li>
+</ul>
+
+<h3>Software (all free)</h3>
+<ul>
+  <li><strong>VS Code</strong> — your main workspace (free from Microsoft)</li>
+  <li><strong>Node.js</strong> — needed to install Claude Code (free)</li>
+  <li><strong>Git</strong> — tracks your work (free)</li>
+</ul>
+
+<h3>Reference Materials</h3>
+<p>You should have received a zip file (or link to a repository) with a working CoS setup. You'll use this as a reference — looking at how things are configured — while building your own from scratch.</p>
+
+<!-- ============ CHAPTER 4 ============ -->
+<h2 id="ch4"><span class="step-num">1</span> Install the Basics</h2>
+
+<h3>1. Install Node.js</h3>
+<div class="platform-tabs" data-group="node">
+  <button class="platform-tab active" onclick="switchTab(this, 'node', 'mac')">Mac</button>
+  <button class="platform-tab" onclick="switchTab(this, 'node', 'win')">Windows</button>
+</div>
+<div class="platform-content active" data-group="node" data-platform="mac">
+  <p>Go to <strong>nodejs.org</strong> and download the LTS (Long Term Support) version. Open the downloaded file and follow the installer. Alternatively, if you have Homebrew:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>brew install node</div>
+  <p>Verify it worked by opening Terminal and typing:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>node --version</div>
+  <p>You should see something like <code>v22.x.x</code>. Any version 20 or higher is fine.</p>
+</div>
+<div class="platform-content" data-group="node" data-platform="win">
+  <p>Go to <strong>nodejs.org</strong> and download the LTS version (.msi installer). Run the installer and accept all defaults.</p>
+  <p>Verify by opening PowerShell or Command Prompt and typing:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>node --version</div>
+  <p>You should see something like <code>v22.x.x</code>. Any version 20 or higher is fine.</p>
+</div>
+
+<h3>2. Install Git</h3>
+<div class="platform-tabs" data-group="git">
+  <button class="platform-tab active" onclick="switchTab(this, 'git', 'mac')">Mac</button>
+  <button class="platform-tab" onclick="switchTab(this, 'git', 'win')">Windows</button>
+</div>
+<div class="platform-content active" data-group="git" data-platform="mac">
+  <p>Open Terminal and type:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>git --version</div>
+  <p>If Git isn't installed, macOS will pop up a dialog asking to install "Xcode Command Line Tools." Click <strong>Install</strong> and wait (a few minutes). Then try <code>git --version</code> again — you should see a version number.</p>
+</div>
+<div class="platform-content" data-group="git" data-platform="win">
+  <p>Download Git for Windows from <strong>gitforwindows.org</strong>. Run the installer — accept all the default settings (there are many screens, just click Next).</p>
+  <p>Verify by opening a new PowerShell window:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>git --version</div>
+</div>
+
+<h3>3. Install VS Code</h3>
+<p>Download from <strong>code.visualstudio.com</strong>. Install it like any other application. Open it when done — you'll see a welcome screen.</p>
+
+<h3>4. Install Claude Code</h3>
+<p>Open a terminal (on Mac: Terminal app; on Windows: PowerShell; or the terminal inside VS Code) and run:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>npm install -g @anthropic-ai/claude-code</div>
+
+<p>This downloads and installs Claude Code globally on your computer. Once it's done, sign in:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>claude</div>
+
+<p>Claude will open and prompt you to authenticate with your Anthropic account. Follow the instructions — it will open a browser window where you log in. Once authenticated, you're in.</p>
+
+<p>Verify the installation:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>claude --version</div>
+
+<div class="alert alert-green"><span class="alert-label">Checkpoint:</span> You should now have Node.js, Git, VS Code, and Claude Code installed. If any of these steps failed, ask Claude itself for help — just type your error message and it will guide you.</div>
+
+<h3>5. Set Up YOLO Mode (recommended)</h3>
+<p>By default, Claude asks permission before every action — creating files, running commands, editing things. This is safe but slow. Since you'll be working with Claude constantly, you want it to <strong>just do things</strong> without asking every time.</p>
+
+<p>YOLO mode (officially called <code>--dangerously-skip-permissions</code>) tells Claude to act without asking. Create a short alias so you don't have to type the long flag every time:</p>
+
+<div class="platform-tabs" data-group="yolo">
+  <button class="platform-tab active" onclick="switchTab(this, 'yolo', 'mac')">Mac</button>
+  <button class="platform-tab" onclick="switchTab(this, 'yolo', 'win')">Windows</button>
+</div>
+<div class="platform-content active" data-group="yolo" data-platform="mac">
+  <p>Open your terminal config file and add this line:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>echo 'alias yolo="claude --dangerously-skip-permissions"' >> ~/.zshrc && source ~/.zshrc</div>
+  <p>Now you can start Claude in YOLO mode by just typing:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>yolo</div>
+</div>
+<div class="platform-content" data-group="yolo" data-platform="win">
+  <p>In PowerShell, create a profile function:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>if (!(Test-Path $PROFILE)) { New-Item $PROFILE -Force }
+Add-Content $PROFILE 'function yolo { claude --dangerously-skip-permissions @args }'</div>
+  <p>Restart PowerShell, then start Claude in YOLO mode by typing:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>yolo</div>
+</div>
+
+<div class="alert alert-yellow"><span class="alert-label">Why is it safe?</span> In the next step, you'll copy a <code>settings.local.json</code> file from the reference zip that defines exactly which permissions Claude gets. This acts as your security guardrails — Claude can read files and run safe commands freely, but destructive operations still require your approval. YOLO mode + settings file = fast AND safe.</div>
+
+<h3>6. Copy Security Settings from Reference Zip</h3>
+<p>The reference zip includes a pre-configured permissions file that controls what Claude can do without asking. This is your safety net in YOLO mode.</p>
+
+<ol>
+  <li>Unzip the reference materials</li>
+  <li>Find the file at <code>.claude/settings.local.json</code> inside the zip</li>
+  <li>Copy it to your Claude config folder:</li>
+</ol>
+
+<div class="platform-tabs" data-group="settings">
+  <button class="platform-tab active" onclick="switchTab(this, 'settings', 'mac')">Mac</button>
+  <button class="platform-tab" onclick="switchTab(this, 'settings', 'win')">Windows</button>
+</div>
+<div class="platform-content active" data-group="settings" data-platform="mac">
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>cp path/to/reference/.claude/settings.local.json ~/.claude/settings.local.json</div>
+</div>
+<div class="platform-content" data-group="settings" data-platform="win">
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>copy path\to\reference\.claude\settings.local.json %USERPROFILE%\.claude\settings.local.json</div>
+</div>
+
+<p>This file pre-approves safe operations (reading files, git commands, searching) while keeping dangerous ones gated. You can review and customize it later — it's just a JSON file.</p>
+
+<div class="alert alert-green"><span class="alert-label">Checkpoint:</span> Now when you type <code>yolo</code>, Claude starts in YOLO mode with sensible security guardrails. Fast and safe.</div>
+
+<!-- ============ CHAPTER 5 ============ -->
+<h2 id="ch5"><span class="step-num">2</span> Set Up VS Code</h2>
+
+<p>VS Code will be your daily workspace. Here's how to set it up for CoS work.</p>
+
+<h3>Open the Terminal in VS Code</h3>
+<div class="platform-tabs" data-group="vscode">
+  <button class="platform-tab active" onclick="switchTab(this, 'vscode', 'mac')">Mac</button>
+  <button class="platform-tab" onclick="switchTab(this, 'vscode', 'win')">Windows</button>
+</div>
+<div class="platform-content active" data-group="vscode" data-platform="mac">
+  <p>Press <code>Cmd + `</code> (backtick key, below Escape) to toggle the built-in terminal. Or go to <strong>View → Terminal</strong> from the menu.</p>
+</div>
+<div class="platform-content" data-group="vscode" data-platform="win">
+  <p>Press <code>Ctrl + `</code> (backtick key, below Escape) to toggle the built-in terminal. Or go to <strong>View → Terminal</strong> from the menu.</p>
+</div>
+
+<h3>Recommended Layout — Terminals First</h3>
+<p>Unlike a typical developer setup, CoS is <strong>terminal-centric</strong>. You spend most of your time talking to Claude in terminals. Files open as tabs when you need to read them.</p>
+
+<div class="card card-accent" style="padding:0; overflow:hidden">
+  <div style="display:grid; grid-template-columns:140px 1fr 1fr 1fr; min-height:180px; font-size:0.85rem;">
+    <div style="background:var(--surface2); padding:0.8rem; border-right:2px solid var(--border); display:flex; flex-direction:column; gap:0.3rem;">
+      <strong style="color:var(--yellow); font-size:0.8rem;">EXPLORER</strong>
+      <span style="color:var(--text-muted); font-size:0.75rem;">&#128193; .claude/</span>
+      <span style="color:var(--text-muted); font-size:0.75rem;">&#128193; docs/</span>
+      <span style="color:var(--text-muted); font-size:0.75rem;">&#128193; projects/</span>
+      <span style="color:var(--text-muted); font-size:0.75rem;">&#128193; tasks/</span>
+      <span style="color:var(--text-muted); font-size:0.75rem;">&#128196; CLAUDE.md</span>
+    </div>
+    <div style="padding:0.8rem; border-right:2px solid var(--border);">
+      <strong style="color:var(--cyan); font-size:0.8rem;">TERMINAL 1</strong><br>
+      <span style="color:var(--text-muted); font-size:0.78rem;">Main Claude session. This is where you give instructions and have your conversation.</span>
+    </div>
+    <div style="padding:0.8rem; border-right:2px solid var(--border);">
+      <strong style="color:var(--orange); font-size:0.8rem;">TERMINAL 2</strong><br>
+      <span style="color:var(--text-muted); font-size:0.78rem;">Claude's output — diffs, tool results, file changes. Auto-populated by Claude Code.</span>
+    </div>
+    <div style="padding:0.8rem;">
+      <strong style="color:var(--purple); font-size:0.8rem;">TERMINAL 3 (optional)</strong><br>
+      <span style="color:var(--text-muted); font-size:0.78rem;">Second Claude session for parallel work, or a plain terminal for manual commands.</span>
+    </div>
+  </div>
+</div>
+
+<p style="color:var(--text-muted); font-size:0.9rem; margin-top:0.5rem;">Files open as tabs inside any terminal panel when you click them in the Explorer or when Claude opens them. No need for a dedicated editor area.</p>
+
+<h3>Step-by-step setup</h3>
+
+<div class="platform-tabs" data-group="layout">
+  <button class="platform-tab active" onclick="switchTab(this, 'layout', 'mac')">Mac</button>
+  <button class="platform-tab" onclick="switchTab(this, 'layout', 'win')">Windows</button>
+</div>
+<div class="platform-content active" data-group="layout" data-platform="mac">
+  <p><strong>1. Open your CoS folder:</strong> File → Open Folder → select your CoS folder</p>
+  <p><strong>2. Open the first terminal:</strong> Press <code>Cmd + `</code> (backtick key, below Escape)</p>
+  <p><strong>3. Move terminal into the main area:</strong> Right-click the terminal tab → <strong>"Move Terminal into Editor Area"</strong>. The terminal now fills the main editor space.</p>
+  <p><strong>4. Split into more terminals:</strong> With the terminal focused, press <code>Cmd + \</code> to split it side-by-side. Repeat for a third panel if you want one.</p>
+  <p><strong>5. Resize:</strong> Drag the borders between panels to adjust. The first terminal (your Claude conversation) should be the widest.</p>
+  <p><strong>6. Start Claude:</strong> Click into the first terminal and type <code>yolo</code></p>
+</div>
+<div class="platform-content" data-group="layout" data-platform="win">
+  <p><strong>1. Open your CoS folder:</strong> File → Open Folder → select your CoS folder</p>
+  <p><strong>2. Open the first terminal:</strong> Press <code>Ctrl + `</code> (backtick key, below Escape)</p>
+  <p><strong>3. Move terminal into the main area:</strong> Right-click the terminal tab → <strong>"Move Terminal into Editor Area"</strong>. The terminal now fills the main editor space.</p>
+  <p><strong>4. Split into more terminals:</strong> With the terminal focused, press <code>Ctrl + \</code> to split it side-by-side. Repeat for a third panel if you want one.</p>
+  <p><strong>5. Resize:</strong> Drag the borders between panels to adjust. The first terminal (your Claude conversation) should be the widest.</p>
+  <p><strong>6. Start Claude:</strong> Click into the first terminal and type <code>yolo</code></p>
+</div>
+
+<h3>Useful Shortcuts</h3>
+<table>
+  <thead><tr><th>Action</th><th>Mac</th><th>Windows</th></tr></thead>
+  <tbody>
+    <tr><td>New terminal</td><td><code>Cmd + Shift + `</code></td><td><code>Ctrl + Shift + `</code></td></tr>
+    <tr><td>Split terminal/editor</td><td><code>Cmd + \</code></td><td><code>Ctrl + \</code></td></tr>
+    <tr><td>Toggle file explorer</td><td><code>Cmd + Shift + E</code></td><td><code>Ctrl + Shift + E</code></td></tr>
+    <tr><td>Open file by name</td><td><code>Cmd + P</code></td><td><code>Ctrl + P</code></td></tr>
+    <tr><td>Switch between panels</td><td><code>Cmd + 1/2/3</code></td><td><code>Ctrl + 1/2/3</code></td></tr>
+  </tbody>
+</table>
+
+<!-- ============ CHAPTER 6 ============ -->
+<h2 id="ch6"><span class="step-num">3</span> Create Your Workspace</h2>
+
+<p>Now you'll create the CoS folder structure. This is the foundation everything else builds on. There's <strong>one manual step</strong>, then Claude does the rest.</p>
+
+<h3>1. Create the root folder and start Claude</h3>
+<div class="platform-tabs" data-group="create">
+  <button class="platform-tab active" onclick="switchTab(this, 'create', 'mac')">Mac</button>
+  <button class="platform-tab" onclick="switchTab(this, 'create', 'win')">Windows</button>
+</div>
+<div class="platform-content active" data-group="create" data-platform="mac">
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>mkdir -p ~/Desktop/CoS && cd ~/Desktop/CoS && yolo</div>
+</div>
+<div class="platform-content" data-group="create" data-platform="win">
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>mkdir %USERPROFILE%\Desktop\CoS && cd %USERPROFILE%\Desktop\CoS && yolo</div>
+</div>
+
+<p>This creates your CoS folder and starts Claude in YOLO mode. Now <strong>tell Claude to do the rest:</strong></p>
+
+<h3>2. Tell Claude to set up the workspace</h3>
+<div class="card card-cyan">
+  <div class="card-title">Just say this to Claude:</div>
+  <div class="card-body"><em>"Set up a CoS workspace here. Initialize git, create these folders: .claude/skills, docs/plans, projects, tasks, temp, logs. Create a .gitignore that excludes temp/, logs/, projects/, and .playwright-mcp/. Create a CLAUDE.md with these core principles: Simplicity First (no over-engineering), No Laziness (find root causes, high standards), Goal-Driven Execution (define success criteria, loop until verified). Add workflow rules: plan first for any non-trivial task, verify before marking done, re-plan if stuck. Add navigation links to docs/plans, projects, and tasks. Then make the first commit."</em></div>
+</div>
+
+<p>Claude will create everything — the folder structure, CLAUDE.md, .gitignore — and make the initial commit. You'll see it happening in real-time.</p>
+
+<p>Here's what gets created:</p>
+<table>
+  <thead><tr><th>Folder</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>.claude/skills/</code></td><td>Your workflow templates — reusable instructions for Claude</td></tr>
+    <tr><td><code>docs/plans/</code></td><td>Design documents and plans (timestamped)</td></tr>
+    <tr><td><code>projects/</code></td><td>All your projects, organized by category</td></tr>
+    <tr><td><code>tasks/</code></td><td>Task lists and lessons learned</td></tr>
+    <tr><td><code>temp/</code></td><td>Scratch files, downloads — anything temporary</td></tr>
+    <tr><td><code>logs/</code></td><td>Action logs (auto-generated)</td></tr>
+  </tbody>
+</table>
+
+<div class="alert alert-green"><span class="alert-label">This is YOUR CLAUDE.md.</span> Customize it as you learn what works. Add your preferences, conventions, and rules. Claude reads this at the start of every session, so anything you put here becomes part of how Claude works for you. Just tell Claude: <em>"Add a rule to CLAUDE.md that we always use metric units."</em></div>
+
+<h3>3. Open in VS Code</h3>
+<p>Open this folder in VS Code: <strong>File → Open Folder → select your CoS folder</strong>. You should see the folder structure in the left panel.</p>
+
+<div class="alert alert-yellow"><span class="alert-label">Remember:</span> From this point on, almost everything in this guide is done by telling Claude what to do. You don't need to memorize commands or file paths. Just describe what you want.</div>
+
+<!-- ============ CHAPTER 7 ============ -->
+<h2 id="ch7"><span class="step-num">4</span> Organize Your Projects</h2>
+
+<p>Every piece of work you do lives in a project folder. Projects are organized by category.</p>
+
+<h3>Folder structure</h3>
+<div class="tree">
+<span class="folder">projects/</span>
+├── <span class="folder">work/</span>                    <span class="comment">← your company projects</span>
+│   ├── <span class="folder">quarterly-review/</span>    <span class="comment">← each project is its own folder</span>
+│   └── <span class="folder">product-launch/</span>
+├── <span class="folder">personal/</span>                <span class="comment">← personal projects</span>
+│   └── <span class="folder">home-renovation/</span>
+└── <span class="folder">learning/</span>                <span class="comment">← learning & experimentation</span>
+    └── <span class="folder">python-course/</span>
+</div>
+
+<h3>Creating a new project</h3>
+<div class="card card-cyan">
+  <div class="card-title">Just tell Claude</div>
+  <div class="card-body">
+    <em>"Create a new project called 'website redesign' under work"</em><br><br>
+    Claude will create the folder, initialize Git, create a CLAUDE.md with a Domain Learnings section, and navigate there. You don't need to remember any commands or file paths.
+  </div>
+</div>
+
+<h3>Each project gets its own CLAUDE.md</h3>
+<p>Claude creates this automatically when you create a project. It includes a <code>## Domain Learnings</code> section where Claude records discoveries as it works — API endpoints, team members, architecture decisions, key facts. This memory persists across sessions.</p>
+
+<h3>Navigating between projects</h3>
+<p>Just tell Claude in plain language:</p>
+<ul>
+  <li><em>"Go to my website redesign project"</em></li>
+  <li><em>"Switch to the quarterly review project"</em></li>
+  <li><em>"Go back to the CoS root"</em></li>
+</ul>
+<p>Claude understands folder navigation. You don't need to type paths.</p>
+
+<!-- ============ CHAPTER 8 ============ -->
+<h2 id="ch8"><span class="step-num">5</span> Install Plugins</h2>
+
+<p><a href="#gl-plugin">Plugins</a> add new capabilities to Claude. You don't need all of them — start with the essentials and add others when you need them.</p>
+
+<h3>Essential — install these first</h3>
+<table>
+  <thead><tr><th>Plugin</th><th>What it does</th><th>Why you need it</th></tr></thead>
+  <tbody>
+    <tr><td><strong>superpowers</strong></td><td>Brainstorming, planning, code review, parallel agents, skill creation</td><td>The core workflow engine. Makes Claude structured and rigorous.</td></tr>
+    <tr><td><strong>context7</strong></td><td>Fetches current documentation for any library or tool</td><td>Claude's knowledge has a cutoff date. This gives it access to the latest docs.</td></tr>
+    <tr><td><strong>github</strong></td><td>Read/write GitHub repos, pull requests, issues</td><td>If you use GitHub for anything — code, docs, project management.</td></tr>
+  </tbody>
+</table>
+
+<h3>Recommended — install when useful</h3>
+<table>
+  <thead><tr><th>Plugin</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><strong>playwright</strong></td><td>Browser automation — take screenshots, fill forms, test websites</td></tr>
+    <tr><td><strong>atlassian</strong></td><td>Read/write Jira issues and Confluence documentation pages</td></tr>
+    <tr><td><strong>code-simplifier</strong></td><td>Review and clean up code for clarity and consistency</td></tr>
+  </tbody>
+</table>
+
+<h3>Optional — for specific use cases</h3>
+<table>
+  <thead><tr><th>Plugin</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><strong>figma</strong></td><td>Read Figma designs and generate code from them</td></tr>
+    <tr><td><strong>playground</strong></td><td>Create interactive HTML tools and explorers</td></tr>
+    <tr><td><strong>ralph-loop</strong></td><td>Iterative workflow automation</td></tr>
+  </tbody>
+</table>
+
+<h3>How to install</h3>
+<div class="card card-cyan">
+  <div class="card-title">Tell Claude</div>
+  <div class="card-body"><em>"Install the superpowers, context7, and github plugins"</em> — Claude installs them all. To add more later: <em>"Install the playwright plugin."</em></div>
+</div>
+
+<!-- ============ CHAPTER 9 ============ -->
+<h2 id="ch9"><span class="step-num">6</span> Connect Your Services</h2>
+
+<p><a href="#gl-mcp">MCP servers</a> are bridges that let Claude reach out to external services. Without them, Claude can only work with files on your computer. With them, it can read your emails, manage your tasks, and more.</p>
+
+<div class="alert alert-yellow"><span class="alert-label">You don't need all of these.</span> Connect only what you actually use. You can always add more later.</div>
+
+<div class="card card-green">
+  <div class="card-title">Gmail</div>
+  <div class="card-body">
+    <strong>Can:</strong> Search emails, read email content, create drafts, list labels<br>
+    <strong>Cannot:</strong> Send emails, delete emails<br>
+    <strong>Connect:</strong> Through Claude Code settings — authenticate with your Google account
+  </div>
+</div>
+
+<div class="card card-accent">
+  <div class="card-title">Google Calendar</div>
+  <div class="card-body">
+    <strong>Can:</strong> View events, find free time, create/update events<br>
+    <strong>Cannot:</strong> Most things work fine<br>
+    <strong>Connect:</strong> Through Claude Code settings — authenticate with your Google account
+  </div>
+</div>
+
+<div class="card card-purple">
+  <div class="card-title">Asana</div>
+  <div class="card-body">
+    <strong>Can:</strong> Read/create/update tasks, search projects, manage portfolios<br>
+    <strong>Cannot:</strong> Delete projects, admin-level operations<br>
+    <strong>Connect:</strong> Through Claude Code settings — authenticate with your Asana account
+  </div>
+</div>
+
+<div class="card card-yellow">
+  <div class="card-title">Atlassian (Jira + Confluence)</div>
+  <div class="card-body">
+    <strong>Can:</strong> Read/write Jira issues, read/write Confluence pages, search across both<br>
+    <strong>Cannot:</strong> Admin operations, delete projects<br>
+    <strong>Connect:</strong> Through Claude Code settings — OAuth with your Atlassian account
+  </div>
+</div>
+
+<div class="card card-cyan">
+  <div class="card-title">Figma</div>
+  <div class="card-body">
+    <strong>Can:</strong> Read designs, inspect components, extract design tokens<br>
+    <strong>Cannot:</strong> Edit designs<br>
+    <strong>Connect:</strong> Through Claude Code settings — OAuth with your Figma account
+  </div>
+</div>
+
+<div class="card card-orange" style="border-left: 4px solid var(--orange);">
+  <div class="card-title" style="color: var(--orange);">Google Workspace CLI (gws)</div>
+  <div class="card-body">
+    <strong>Can:</strong> Access Google Drive (list, search, upload, download files), Sheets, Slides, Forms, Tasks, People, Chat, Keep, Meet — the full Google Workspace suite<br>
+    <strong>Cannot:</strong> Nothing specific — covers all Google Workspace APIs<br>
+    <strong>Why:</strong> MCP servers handle Gmail and Calendar well, but for Google Drive, Sheets, Slides, and other Workspace services you need this CLI tool<br>
+    <strong>Install:</strong>
+    <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>npm install -g @googleworkspace/cli</div>
+    <strong>Authenticate:</strong> Add these environment variables to your terminal profile:
+    <div class="platform-tabs" data-group="gws">
+      <button class="platform-tab active" onclick="switchTab(this, 'gws', 'mac')">Mac</button>
+      <button class="platform-tab" onclick="switchTab(this, 'gws', 'win')">Windows</button>
+    </div>
+    <div class="platform-content active" data-group="gws" data-platform="mac">
+      <p>Add to your <code>~/.zshrc</code> file:</p>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>export GOOGLE_WORKSPACE_CLI_CLIENT_ID="872727238913-vtuccf49emcj95nmgbpkls6jkfudjj9b.apps.googleusercontent.com"
+export GOOGLE_WORKSPACE_CLI_CLIENT_SECRET="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"
+export OAUTHLIB_INSECURE_TRANSPORT="1"</div>
+    </div>
+    <div class="platform-content" data-group="gws" data-platform="win">
+      <p>In PowerShell, set permanently:</p>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>[System.Environment]::SetEnvironmentVariable("GOOGLE_WORKSPACE_CLI_CLIENT_ID", "872727238913-vtuccf49emcj95nmgbpkls6jkfudjj9b.apps.googleusercontent.com", "User")
+[System.Environment]::SetEnvironmentVariable("GOOGLE_WORKSPACE_CLI_CLIENT_SECRET", "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", "User")
+[System.Environment]::SetEnvironmentVariable("OAUTHLIB_INSECURE_TRANSPORT", "1", "User")</div>
+    </div>
+    <p>Then run <code>gws drive files list --params '{"pageSize": 1}'</code> — it will open a browser for OAuth consent on first use.</p>
+    <strong>Verify:</strong> <code>gws drive files list --params '{"pageSize": 3}'</code> — should list your recent Drive files
+  </div>
+</div>
+
+<div class="card card-cyan">
+  <div class="card-title">Tell Claude</div>
+  <div class="card-body"><em>"Help me connect Gmail and Google Calendar"</em> — Claude walks you through the OAuth flow. Same for any service: <em>"Set up the Atlassian MCP server"</em>, <em>"Connect Asana"</em>, etc.</div>
+</div>
+
+<!-- ============ CHAPTER 10 ============ -->
+<h2 id="ch10"><span class="step-num">7</span> Set Up Second Opinions</h2>
+
+<p>One of the most powerful features of CoS is the ability to get <a href="#gl-secondopinion">independent AI review</a> of your work. When Claude creates a plan, analysis, or document, you can send it to other AI models for a fresh perspective.</p>
+
+<p>Think of it as a built-in peer review system. Different models think differently — they catch blind spots, challenge assumptions, and improve quality.</p>
+
+<h3>Option A: Claude Only (no extra setup)</h3>
+
+<div class="card card-green">
+  <div class="card-title">Simplest — already available</div>
+  <div class="card-body">
+    The second-opinion <a href="#gl-skill">skill</a> can spawn a separate Claude process to review work. No extra accounts or API keys needed.<br><br>
+    <strong>Limitation:</strong> It's the same model reviewing itself. Better than no review, but it shares the same blind spots.<br><br>
+    <strong>When this is enough:</strong> Quick reviews, non-critical work, getting started.
+  </div>
+</div>
+
+<h3>Option B: Multi-Model Review (recommended for important work)</h3>
+
+<p>For the best results, add two more AI reviewers so you get three independent perspectives:</p>
+
+<h4>1. Claude — already available</h4>
+<p>Comes with your Claude subscription. No extra setup needed.</p>
+
+<h4>2. OpenAI Codex CLI</h4>
+<p>OpenAI's coding agent that runs in the terminal.</p>
+
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>npm install -g @openai/codex</div>
+
+<p><strong>Authentication (pick one):</strong></p>
+<ul>
+  <li><strong>ChatGPT login (easiest):</strong> Run <code>codex</code>, select "Sign in with ChatGPT." Needs a ChatGPT Plus or Pro subscription.</li>
+  <li><strong>API key:</strong> Create one at <strong>platform.openai.com</strong>, then set it in your terminal profile:</li>
+</ul>
+
+<div class="platform-tabs" data-group="codex">
+  <button class="platform-tab active" onclick="switchTab(this, 'codex', 'mac')">Mac</button>
+  <button class="platform-tab" onclick="switchTab(this, 'codex', 'win')">Windows</button>
+</div>
+<div class="platform-content active" data-group="codex" data-platform="mac">
+  <p>Add to your <code>~/.zshrc</code> file:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>export OPENAI_API_KEY="your-key-here"</div>
+</div>
+<div class="platform-content" data-group="codex" data-platform="win">
+  <p>In PowerShell, set permanently:</p>
+  <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>[System.Environment]::SetEnvironmentVariable("OPENAI_API_KEY", "your-key-here", "User")</div>
+</div>
+
+<p>Verify: <code>codex --version</code></p>
+
+<h4>3. Google Gemini CLI</h4>
+<p>Google's AI agent in the terminal.</p>
+
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>npm install -g @google/gemini-cli</div>
+
+<p><strong>Authentication:</strong></p>
+<ul>
+  <li>Get a free API key from <strong>aistudio.google.com</strong></li>
+  <li>Set it in your terminal profile (same way as the OpenAI key above, but use <code>GOOGLE_API_KEY</code>)</li>
+</ul>
+
+<p>Verify: <code>gemini --version</code></p>
+
+<h3>How it works in practice</h3>
+<div class="card card-accent">
+  <div class="card-body">
+    <p>You tell Claude: <em>"Get a second opinion on this plan"</em></p>
+    <p>Claude automatically:</p>
+    <ol>
+      <li>Detects which CLIs are installed (Claude, Codex, Gemini)</li>
+      <li>Sends the work to all available reviewers in parallel</li>
+      <li>Collects their feedback</li>
+      <li>Synthesizes: where they <strong style="color:var(--green)">agree</strong> (high confidence) and where they <strong style="color:var(--orange)">disagree</strong> (needs your judgment)</li>
+      <li>Presents prioritized action items</li>
+    </ol>
+  </div>
+</div>
+
+<div class="alert alert-green"><span class="alert-label">Cost note:</span> Codex with ChatGPT login is included in your ChatGPT subscription. Gemini CLI has a generous free tier. So the full three-model stack can be nearly free beyond your existing subscriptions.</div>
+
+<!-- ============ CHAPTER 11 ============ -->
+<h2 id="ch11"><span class="step-num intro">&#9733;</span> How CoS Works</h2>
+
+<p>This is the heart of the guide. Everything before this was installation — now you learn the skills, rules, hooks, and workflows that make CoS powerful.</p>
+
+<h3>Session Startup</h3>
+<p>When you start Claude in your CoS folder, the <strong>cos-welcome</strong> skill shows an interactive menu:</p>
+
+<div class="card card-green">
+  <div class="card-body" style="font-family:monospace; font-size:0.88rem; line-height:1.6">
+    What would you like to do?<br><br>
+    &nbsp;&nbsp;[1] Talk to CoS — ask questions, review setup, manage the workspace<br>
+    &nbsp;&nbsp;[2] New project — scaffold a new project<br>
+    &nbsp;&nbsp;[3] Switch to recent project:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a. quarterly-review (2 days ago)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b. product-launch (4 days ago)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c. competitor-analysis (1 week ago)<br>
+    &nbsp;&nbsp;[4] Switch to another project — browse full registry
+  </div>
+</div>
+
+<p>Recent projects are ranked by last activity (from prompt history logs). Pick a number, type a project name, or just describe what you want to do — Claude figures it out.</p>
+
+<h3>Plans</h3>
+<p>Before any big task, create a plan first. Don't just jump into execution.</p>
+
+<div class="card card-accent">
+  <div class="card-body">
+    Tell Claude: <em>"Plan this out before starting"</em> or <em>"Enter plan mode"</em><br><br>
+    Claude will think through the approach, break it into steps, identify risks, and present the plan for your approval before doing anything.
+  </div>
+</div>
+
+<p>Plans are saved as timestamped files:</p>
+<div class="code-block" style="color:var(--text)"><button class="copy-btn" onclick="copyCode(this)">Copy</button>docs/plans/2026-03-10-website-redesign.md
+docs/plans/2026-03-15-email-automation.md</div>
+
+<p>The workflow:</p>
+<div class="flow">
+  <div class="flow-step">Tell Claude what you want</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Claude creates a plan</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">You review and approve</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Claude executes step by step</div>
+</div>
+
+<h3>Skills — The Workflows That Make It Work</h3>
+<p><a href="#gl-skill">Skills</a> are reusable workflow templates. They live in <code>.claude/skills/&lt;name&gt;/SKILL.md</code> and get invoked automatically or by name.</p>
+
+<h4>Core Skills (install these)</h4>
+<table>
+  <thead><tr><th>Skill</th><th>Source</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><strong>superpowers</strong></td><td>Plugin</td><td>The workflow engine: brainstorming (before any creative work), systematic-debugging (before any fix), writing-plans (multi-step tasks), executing-plans, code review, verification-before-completion, parallel agents. <strong>This is the most important plugin.</strong></td></tr>
+    <tr><td><strong>cos-welcome</strong></td><td>Built-in</td><td>Session startup menu — shows recent projects, offers project switching, new project creation. Fires on every session start.</td></tr>
+    <tr><td><strong>new-project</strong></td><td>Built-in</td><td>Scaffolds a new project: pick category → name it → folders + CLAUDE.md + registry entry created automatically.</td></tr>
+    <tr><td><strong>second-opinion</strong></td><td>Built-in</td><td>Sends your work to other AI models (Claude CLI, Codex, Gemini) for independent review. Should run after any plan, analysis, or recommendation.</td></tr>
+    <tr><td><strong>ralph-loop</strong></td><td>Plugin</td><td>Iterative refinement loop — runs after implementation tasks to catch what the first pass missed.</td></tr>
+    <tr><td><strong>swarm</strong></td><td>Built-in</td><td>Phased workflow orchestration with review checkpoints. For documents and analysis, not just code.</td></tr>
+  </tbody>
+</table>
+
+<h4>Domain Skills (create your own)</h4>
+<p>These are skills specific to your work. Examples from a real setup:</p>
+<ul>
+  <li><strong>ceo-voice</strong> — writes in the CEO's authentic tone for newsletters and communications</li>
+  <li><strong>enterprise-architect</strong> — applies company architecture patterns and operating principles</li>
+  <li><strong>weekly-digest</strong> — searches emails, categorizes by urgency, produces HTML report</li>
+</ul>
+
+<div class="card card-cyan">
+  <div class="card-title">Creating skills</div>
+  <div class="card-body"><em>"Create a skill called weekly-digest that searches Gmail for important emails from the past 7 days, categorizes them by urgency, creates an HTML report, and lists action items with deadlines."</em><br><br>Claude creates the skill file. Then you just say <em>"Run the weekly digest"</em> and it follows the recipe.</div>
+</div>
+
+<div class="alert alert-yellow"><span class="alert-label">Tip:</span> Skills grow organically. When you find yourself giving Claude the same instructions repeatedly, say: <em>"Turn what we just did into a reusable skill."</em></div>
+
+<h3>Rules — Enforcing Behavior</h3>
+<p><a href="#gl-rule">Rules</a> live in <code>.claude/rules/</code> and are injected into every Claude message. They're stronger than CLAUDE.md instructions because Claude can't miss them.</p>
+
+<p>The most important rule is <strong>skill-enforcement</strong> — a decision matrix that maps task types to required skills:</p>
+
+<div class="card card-accent">
+  <div class="card-body">
+    <strong>Entry gates</strong> (invoke before acting):<br>
+    Creative/build work → brainstorming skill<br>
+    Bug/error → systematic-debugging skill<br>
+    Multi-step task → writing-plans skill<br><br>
+    <strong>Exit gates</strong> (invoke after producing output):<br>
+    After any plan/analysis/recommendation → second-opinion<br>
+    After any implementation → ralph-loop<br>
+    Before claiming "done" → verification-before-completion
+  </div>
+</div>
+
+<p>Without this rule, Claude optimizes for speed and skips skills. With it, Claude self-checks before every action.</p>
+
+<h3>Hooks — The Enforcement Layer</h3>
+<p><a href="#gl-hook">Hooks</a> fire automatically on events. Key hooks in a working CoS setup:</p>
+
+<table>
+  <thead><tr><th>Hook</th><th>Fires on</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><strong>cos-welcome</strong></td><td>Session start</td><td>Reminds Claude to show the startup menu</td></tr>
+    <tr><td><strong>skill-nudge</strong></td><td>Every prompt</td><td>Pattern-matches your prompt and reminds Claude which skill to invoke (brainstorming, debugging, etc.)</td></tr>
+    <tr><td><strong>prompt-history</strong></td><td>Every prompt</td><td>Logs every prompt with timestamp to <code>logs/prompt-history.jsonl</code></td></tr>
+  </tbody>
+</table>
+
+<p>Hooks are configured in <code>.claude/settings.local.json</code> under the <code>"hooks"</code> key. The reference zip includes all of these pre-configured.</p>
+
+<h3>Prompt Logging — Your Command History</h3>
+<p>Every prompt you type is automatically logged — no setup needed. A hook fires on every message and saves it to a <code>logs/prompt-history.jsonl</code> file with a UTC timestamp.</p>
+
+<div class="card card-accent">
+  <div class="card-body">
+    <strong>CoS-level prompts</strong> (when you're in the root workspace) go to <code>logs/prompt-history.jsonl</code> in the CoS root.<br>
+    <strong>Project-level prompts</strong> (when you're inside a project) go to <code>logs/prompt-history.jsonl</code> inside that project's folder.<br><br>
+    This gives you a full audit trail — you can see what you asked, when, and in which context. Useful for reviewing your workflow, finding past instructions, or understanding how a deliverable was produced.
+  </div>
+</div>
+
+<h3>Project Scaffolding</h3>
+<p>When you start a new initiative, CoS creates a complete project structure for you. Just say <em>"Create a new project"</em> and Claude will ask for a name, category, and type, then scaffold everything:</p>
+
+<div class="code-block" style="color:var(--text)"><button class="copy-btn" onclick="copyCode(this)">Copy</button>projects/groupon/GRPN_CheckoutVisibility/
+├── inputs/              # Drop source materials here
+│   └── .processed.md    # Tracks what's been processed
+├── knowledge/           # Extracted & synthesized content
+│   └── README.md        # Navigation map
+├── deliverables/        # Final outputs
+├── CLAUDE.md            # Project context for Claude
+└── README.md            # Project overview</div>
+
+<div class="card card-green">
+  <div class="card-title">CLAUDE.md — the project brain</div>
+  <div class="card-body">
+    Each project gets its own <code>CLAUDE.md</code> tailored to its type (research, analysis, strategy, code, etc.). It contains:<br>
+    <ul style="margin-top:0.5rem">
+      <li><strong>Metadata</strong> — category, status, creation date, type</li>
+      <li><strong>Purpose</strong> — what the project is trying to achieve</li>
+      <li><strong>Workflow</strong> — step-by-step process matched to the project type</li>
+      <li><strong>Inputs Processing</strong> — rules for auto-ingesting materials from <code>inputs/</code></li>
+      <li><strong>Domain Learnings</strong> — knowledge Claude accumulates as it works on the project</li>
+    </ul>
+    When Claude opens a project, it reads this file first — so it immediately knows the context, goals, and what it learned in previous sessions.
+  </div>
+</div>
+
+<div class="card card-yellow">
+  <div class="card-title">README.md — the human-readable overview</div>
+  <div class="card-body">
+    A simple overview of the project: what it is, its status, and the folder structure. Useful when you're browsing projects or sharing context with others.
+  </div>
+</div>
+
+<p>Projects are registered in <code>docs/projects.md</code> — a central index of everything you're working on. Each gets its own git repo, so you have full version history per project.</p>
+
+<h3>Learnings — How CoS Gets Smarter</h3>
+<p>CoS has two types of memory that persist across sessions:</p>
+
+<div class="card card-green">
+  <div class="card-title">1. Domain Learnings (per project)</div>
+  <div class="card-body">
+    Each project's CLAUDE.md has a <code>## Domain Learnings</code> section. As Claude works on a project, it appends discoveries: API endpoints, team members, architecture decisions, key facts.<br><br>
+    Next time you open that project, Claude already knows what it learned before.
+  </div>
+</div>
+
+<div class="card card-yellow">
+  <div class="card-title">2. Lessons Learned (workspace-wide)</div>
+  <div class="card-body">
+    <code>tasks/lessons.md</code> captures mistakes and rules to prevent them. When you correct Claude — "No, always use this format" — it adds a lesson so the same mistake doesn't happen again.<br><br>
+    This is how your CoS gets better over time. Every correction makes future sessions smoother.
+  </div>
+</div>
+
+<p>You can also tell Claude explicitly: <em>"Remember that we always use metric units in this project"</em> — and it adds it to the project CLAUDE.md.</p>
+
+<h3>Task Tracking</h3>
+<p>Simple and practical:</p>
+<ul>
+  <li><code>tasks/todo.md</code> = a checklist that Claude creates when planning and updates as it works</li>
+  <li>You can say: <em>"Add a task for reviewing the Q2 report"</em> or <em>"What's left to do?"</em></li>
+  <li>Each project can have its own <code>tasks/todo.md</code> for project-specific tracking</li>
+</ul>
+
+<h3>The Review Loop</h3>
+<p>This is the core workflow that makes CoS outputs reliable:</p>
+
+<div class="card card-purple">
+  <div class="card-body" style="text-align:center; padding:1.5rem">
+    <div class="flow" style="flex-direction:column; gap:0.5rem; align-items:stretch; max-width:400px; margin:0 auto">
+      <div class="flow-step" style="text-align:center"><strong>1. PLAN</strong> — tell Claude what you want</div>
+      <div class="flow-arrow" style="transform:rotate(90deg)">→</div>
+      <div class="flow-step" style="text-align:center"><strong>2. REVIEW</strong> — get second opinion on the plan</div>
+      <div class="flow-arrow" style="transform:rotate(90deg)">→</div>
+      <div class="flow-step" style="text-align:center"><strong>3. EXECUTE</strong> — Claude works through step by step</div>
+      <div class="flow-arrow" style="transform:rotate(90deg)">→</div>
+      <div class="flow-step" style="text-align:center"><strong>4. VERIFY</strong> — prove the output is correct</div>
+      <div class="flow-arrow" style="transform:rotate(90deg)">→</div>
+      <div class="flow-step" style="text-align:center"><strong>5. ITERATE</strong> — refine based on results</div>
+    </div>
+  </div>
+</div>
+
+<p>This loop applies to everything: documents, analysis, research, code. The key habits:</p>
+<ul>
+  <li>Always plan before executing</li>
+  <li>Get second opinions on important work</li>
+  <li>Always verify before declaring done</li>
+  <li>Iterate — first draft is rarely final</li>
+</ul>
+
+<h3>Growing Your Setup</h3>
+
+<table>
+  <thead><tr><th>When</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Week 1</strong></td><td>Just CLAUDE.md + basic folder structure. Get comfortable talking to Claude.</td></tr>
+    <tr><td><strong>Week 2-4</strong></td><td>Add plugins and connect services you actually use. Create your first project.</td></tr>
+    <tr><td><strong>Month 2+</strong></td><td>Create skills for recurring workflows. Set up second opinions.</td></tr>
+    <tr><td><strong>Ongoing</strong></td><td>Your CoS grows with every project. Domain learnings accumulate. Skills get refined. Tell Claude to iterate: <em>"This workflow isn't efficient, let's improve it."</em></td></tr>
+  </tbody>
+</table>
+
+<!-- ============ CHAPTER 12 ============ -->
+<h2 id="ch12"><span class="step-num intro">&#9654;</span> Your First Real Task</h2>
+
+<p>Time to use your CoS for something real. Pick one of these walkthroughs:</p>
+
+<h3>Option A: Create a Project Plan (no services needed)</h3>
+
+<div class="card card-green">
+  <div class="card-body">
+    <p><strong>1.</strong> Open VS Code, open the terminal, make sure you're in your CoS folder, and run <code>yolo</code></p>
+    <p><strong>2.</strong> Type: <em>"Create a new project called 'home renovation' under personal"</em></p>
+    <p>→ Claude creates the folder, initializes Git, creates CLAUDE.md</p>
+    <p><strong>3.</strong> Type: <em>"I want to plan a bathroom renovation. Help me create a project plan with phases, budget considerations, and a timeline. Plan this out before starting."</em></p>
+    <p>→ Claude enters plan mode, may ask clarifying questions, then presents a structured plan</p>
+    <p><strong>4.</strong> Review the plan. Give feedback: <em>"Add a section about permits. Make the timeline more conservative."</em></p>
+    <p>→ Claude revises</p>
+    <p><strong>5.</strong> Type: <em>"Get a second opinion on this plan"</em></p>
+    <p>→ Claude sends it for review and presents the feedback</p>
+    <p><strong>6.</strong> Done! Your plan is saved in <code>docs/plans/</code>. Open it in the editor to review.</p>
+  </div>
+</div>
+
+<h3>Option B: Process Your Emails (requires Gmail connected)</h3>
+
+<div class="card card-accent">
+  <div class="card-body">
+    <p><strong>1.</strong> Open Claude Code in your CoS folder</p>
+    <p><strong>2.</strong> Type: <em>"Search my Gmail for unread emails from this week and summarize the top 10 by urgency"</em></p>
+    <p>→ Claude searches Gmail, reads emails, categorizes them</p>
+    <p><strong>3.</strong> Review the summary. Type: <em>"Save this as an HTML report in temp/"</em></p>
+    <p>→ Claude creates a styled HTML file</p>
+    <p><strong>4.</strong> Open the file in your browser to see your email digest</p>
+    <p><strong>5.</strong> Type: <em>"Now create a skill so I can run this every Monday"</em></p>
+    <p>→ Claude creates a reusable skill in <code>.claude/skills/</code></p>
+  </div>
+</div>
+
+<div class="alert alert-green"><span class="alert-label">Congratulations!</span> You just used your Chief of Stuff. From here, explore what else Claude can do. Ask it anything — process data, write documents, analyze problems, automate workflows. The more you use it, the smarter it gets (through learnings and refined skills).</div>
+
+<!-- ============ CHAPTER 13 ============ -->
+<h2 id="ch13"><span class="step-num intro">&#128194;</span> What's in the Reference Repo</h2>
+
+<p>You received a reference CoS setup. <a href="cos-setup.zip" download><strong>Download it here</strong></a> if you haven't already. Here's a map of what's inside and what each part does:</p>
+
+<div class="tree">
+<span class="folder">CoS/</span>                              <span class="comment">← Root workspace</span>
+├── <span class="file">CLAUDE.md</span>                     <span class="comment">← Master instructions (READ THIS FIRST)</span>
+├── <span class="folder">.claude/</span>
+│   ├── <span class="file">settings.local.json</span>       <span class="comment">← Permissions + hooks config</span>
+│   ├── <span class="folder">skills/</span>                   <span class="comment">← Workflow templates</span>
+│   │   ├── <span class="folder">cos-welcome/</span>          <span class="comment">← Session startup menu + project picker</span>
+│   │   ├── <span class="folder">new-project/</span>          <span class="comment">← Creates new projects automatically</span>
+│   │   ├── <span class="folder">second-opinion/</span>       <span class="comment">← Multi-model review workflow</span>
+│   │   ├── <span class="folder">swarm/</span>                <span class="comment">← Phased execution with review gates</span>
+│   │   └── <span class="file">...</span>                    <span class="comment">← Domain-specific skills</span>
+│   ├── <span class="folder">rules/</span>                    <span class="comment">← Always-on behavior rules</span>
+│   │   └── <span class="file">skill-enforcement.md</span>  <span class="comment">← Entry/exit gates for skills</span>
+│   └── <span class="folder">hooks/</span>                    <span class="comment">← Auto-triggered scripts</span>
+│       ├── <span class="folder">cos-welcome/</span>          <span class="comment">← Shows startup menu on session start</span>
+│       ├── <span class="folder">skill-nudge/</span>          <span class="comment">← Reminds Claude which skill to use</span>
+│       ├── <span class="folder">prompt-history/</span>       <span class="comment">← Logs every prompt with timestamp</span>
+│       ├── <span class="folder">update-checker/</span>       <span class="comment">← Auto-checks for plugin updates</span>
+│       └── <span class="folder">git-sync/</span>             <span class="comment">← Auto-syncs workspace with remote</span>
+├── <span class="folder">docs/</span>
+│   ├── <span class="file">conventions.md</span>            <span class="comment">← Naming rules and preferences</span>
+│   ├── <span class="file">projects.md</span>               <span class="comment">← Registry of all projects</span>
+│   └── <span class="folder">plans/</span>                    <span class="comment">← Timestamped design documents</span>
+├── <span class="folder">projects/</span>                     <span class="comment">← All projects, by category</span>
+├── <span class="folder">tasks/</span>
+│   ├── <span class="file">todo.md</span>                   <span class="comment">← Current task list</span>
+│   └── <span class="file">lessons.md</span>                <span class="comment">← Self-improvement patterns</span>
+├── <span class="folder">temp/</span>                         <span class="comment">← Scratch files (gitignored)</span>
+└── <span class="folder">logs/</span>                         <span class="comment">← Action logs (gitignored)</span>
+</div>
+
+<h3>How to explore it</h3>
+
+<div class="card card-cyan">
+  <div class="card-body">
+    <p><strong>Best approach:</strong> Copy the reference repo into your projects folder and explore it with Claude.</p>
+    <ol>
+      <li>Copy the reference folder to <code>projects/CoS_reference/</code></li>
+      <li>Tell Claude: <em>"Go to the CoS reference project"</em></li>
+      <li>Ask Claude: <em>"Walk me through how this CoS is set up. What are the key files?"</em></li>
+      <li>Ask about anything specific: <em>"How does the second-opinion skill work?"</em> or <em>"Show me how skills are structured"</em></li>
+    </ol>
+  </div>
+</div>
+
+<p><strong>Already copied:</strong> <code>settings.local.json</code> (permissions — you did this in <a href="#ch4">Step 1</a>)</p>
+<p><strong>Copy freely:</strong> CLAUDE.md structure, folder conventions, second-opinion skill, update-checker hook, .gitignore</p>
+<p><strong>Use as inspiration:</strong> domain-specific skills, MCP server configs, project folders, lessons learned</p>
+
+<!-- ============ CHAPTER 14 ============ -->
+<h2 id="ch14"><span class="step-num intro">&#128161;</span> Tips & Troubleshooting</h2>
+
+<h3>Tips</h3>
+<ul>
+  <li><strong>Start small.</strong> Don't try to set up everything at once. Get comfortable with the basics first.</li>
+  <li><strong>Talk naturally.</strong> No special syntax needed. Just describe what you want in plain language.</li>
+  <li><strong>Correct Claude.</strong> If Claude does something wrong, tell it. It adds a lesson so it doesn't repeat the mistake.</li>
+  <li><strong>Plan before doing.</strong> For anything with 3+ steps, ask Claude to plan first.</li>
+  <li><strong>Get second opinions on important work.</strong> It takes seconds and catches real issues.</li>
+  <li><strong>Iterate on your CLAUDE.md.</strong> This file evolves with you. Add preferences, rules, and conventions as you discover them.</li>
+  <li><strong>Ask Claude to improve itself.</strong> <em>"This workflow isn't efficient. How can we make it better?"</em></li>
+</ul>
+
+<h3>Common Issues</h3>
+<table>
+  <thead><tr><th>Problem</th><th>Solution</th></tr></thead>
+  <tbody>
+    <tr><td><em>"Claude says it can't access my email/calendar/tasks"</em></td><td>The MCP server isn't connected. Ask Claude: <em>"Help me set up the Gmail MCP server."</em></td></tr>
+    <tr><td><em>"I'm hitting usage limits"</em></td><td>If you're on Pro, this is expected — upgrade to Max 5x ($100/mo). It's the plan built for daily CoS use. Pro limits reset every 5-8 hours, but you'll keep hitting them.</td></tr>
+    <tr><td><em>"Claude forgot what we discussed"</em></td><td>Long conversations get compressed. Put important info in CLAUDE.md or project files — those persist across sessions.</td></tr>
+    <tr><td><em>"A plugin isn't working"</em></td><td>Ask Claude: <em>"Check if the GitHub plugin is working."</em> It can diagnose and fix most issues.</td></tr>
+    <tr><td><em>"git says 'not a repository'"</em></td><td>You need to run <code>git init</code> in the folder first. Go back to <a href="#ch6">Step 3</a>.</td></tr>
+    <tr><td><em>"npm: command not found"</em></td><td>Node.js isn't installed. Go back to <a href="#ch4">Step 1</a>.</td></tr>
+    <tr><td><em>"Claude seems slow or stuck"</em></td><td>Complex tasks take time. If Claude is truly stuck, type <em>"Stop. Let's rethink this approach."</em></td></tr>
+  </tbody>
+</table>
+
+<h3>Getting Help</h3>
+<ul>
+  <li><strong>Ask Claude itself:</strong> <em>"I'm having trouble with X, help me debug it"</em> — this works surprisingly well</li>
+  <li><strong>Claude Code issues:</strong> <a href="https://github.com/anthropics/claude-code/issues">github.com/anthropics/claude-code/issues</a></li>
+  <li><strong>The reference repo:</strong> Open it as a project and ask Claude to explain any part of it</li>
+</ul>
+
+<h3>Cost Management</h3>
+<ul>
+  <li><strong>Pro ($20/mo):</strong> Good for getting started. Limits reset every 5-8 hours, but you'll hit them fast with real work. Treat it as a trial.</li>
+  <li><strong>Max 5x ($100/mo):</strong> The Builder plan. Limits reset weekly with 5x the capacity — enough for daily CoS use. This is where most Builders end up, and it's well worth it once you see what CoS can do.</li>
+  <li><strong>Max 20x ($200/mo):</strong> For power users running lots of parallel agents or multiple heavy projects simultaneously.</li>
+  <li><strong>Subagents and parallel work</strong> use more quota than simple questions.</li>
+  <li><strong>Second opinions</strong> use quota per reviewer (Claude counts, Codex/Gemini use their own quotas).</li>
+</ul>
+
+<!-- Footer -->
+<div style="text-align:center; margin-top:4rem; padding:2rem 0; border-top:1px solid var(--border); color:var(--text-muted); font-size:0.85rem;">
+  <p>Chief of Stuff Setup Guide — built with Claude Code</p>
+  <p style="margin-top:0.3rem">Start simple. Grow as you go. Your CoS evolves with you.</p>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// Platform tab switching
+function switchTab(btn, group, platform) {
+  // Update tab buttons
+  document.querySelectorAll(`.platform-tab`).forEach(t => {
+    if (t.closest(`[data-group="${group}"]`)) t.classList.remove('active');
+  });
+  btn.classList.add('active');
+  // Update content
+  document.querySelectorAll(`.platform-content[data-group="${group}"]`).forEach(c => {
+    c.classList.remove('active');
+    if (c.dataset.platform === platform) c.classList.add('active');
+  });
+}
+
+// Copy to clipboard
+function copyCode(btn) {
+  const block = btn.parentElement;
+  const text = block.textContent.replace('Copy', '').replace('Copied!', '').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>

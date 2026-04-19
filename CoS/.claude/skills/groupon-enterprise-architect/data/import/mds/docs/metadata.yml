@@ -1,0 +1,8 @@
+service_name: Marketing Deal Service
+domain: Continuum Platform
+description: Handles marketing deals, feeds, and performance analytics.
+language: Java
+owner_team: marketing-deals
+slack_channel: "#marketing-deals"
+status: active
+last_updated: 2025-11-12

@@ -1,0 +1,6 @@
+playwright/node_modules/
+logs/
+temp/
+.DS_Store
+*.log
+.salesforce-session.json

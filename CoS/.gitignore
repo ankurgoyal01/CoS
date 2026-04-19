@@ -1,0 +1,39 @@
+# Project repos live here as independent git repos
+projects/*
+!projects/.gitkeep
+
+# Temporary downloads and scratch files
+temp/*
+!temp/.gitkeep
+
+# Action logs
+logs/*
+!logs/.gitkeep
+
+# Override global gitignore to track project settings
+!.claude/settings.local.json
+
+# Update checker state files
+.claude/hooks/update-checker/.last_check
+.claude/hooks/update-checker/.check_results
+.claude/hooks/update-checker/.npm_versions
+
+# Git sync state files
+.claude/hooks/git-sync/.sync.log
+.claude/hooks/git-sync/.sync-stdout.log
+.claude/hooks/git-sync/.sync-stderr.log
+
+# MCP server state
+.playwright-mcp/
+
+# Agent and tool state
+.agent/
+.agents/
+.wrangler/
+
+# OS files
+.DS_Store
+.claude/hooks/git-sync/.sync.lock
+CoS.code-workspace
+.idea/
+CoS projects
