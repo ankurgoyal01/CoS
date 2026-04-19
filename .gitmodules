@@ -1,0 +1,3 @@
+[submodule "projects/SFDC/ai-chatbot"]
+	path = projects/SFDC/ai-chatbot
+	url = https://github.com/ankurgoyal01/ai-chatbot
