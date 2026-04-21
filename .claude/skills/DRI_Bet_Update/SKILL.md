@@ -7,6 +7,11 @@ description: >
   posts to Asana. Invoke when a PM says "run DRI update", "generate iteration report",
   or "/DRI_Bet_Update". Requires bet configuration to be filled in (see BET CONFIG
   section). The giq-report skill is a pre-configured instance of this pattern for GIQ.
+
+  MCP setup (Groupon CoS standard):
+  - Jira/Confluence: Atlassian MCP (groupondev.atlassian.net)
+  - Asana: Asana MCP (groupon.com workspace, GID 8437193015852)
+  - Tempo: direct Echelon API via bash curl (not MCP — requires Echelon endpoint access)
 ---
 
 # DRI Bet Update
@@ -269,13 +274,16 @@ Dispatch as a parallel subagent with the following prompt:
 You are collecting meeting notes for the {bet_name} iteration from {start_date} to {end_date}.
 
 ### Source: Asana Meeting Notes
+
+Use the **Asana MCP** (`Asana:get_task`).
+
 Query each parent task listed in `asana_meeting_tasks`:
-- Use `mcp__claude_ai_Asana__get_task` with the task GID and `include_subtasks: true`
+- Call `Asana:get_task` with the task GID
 - **Do NOT filter by title** — all subtasks are bet-related meetings
 - Parse the date from the subtask name (expected: "[Title] — YYYY-MM-DD")
 - Skip subtasks whose date cannot be parsed (log a warning)
 - Include only subtasks where the parsed date falls within [{start_date}, {end_date}]
-- For each included subtask: call `mcp__claude_ai_Asana__get_task` with the subtask GID; extract SUMMARY, ACTION ITEMS, DECISIONS, and BLOCKERS sections from the notes field
+- For each included subtask: call `Asana:get_task` with the subtask GID; extract SUMMARY, ACTION ITEMS, DECISIONS, and BLOCKERS sections from the notes field
 
 ### Output
 ```json
@@ -316,52 +324,67 @@ Classify each ticket and roadmap item into one of the configured streams using k
 **Run Steps 1, 2, 2b, 2c, and 3 in parallel.**
 
 ### Step 1: Metric baselines
-Use `mcp__claude_ai_Atlassian__getJiraIssue` with:
+
+Use the **Atlassian MCP** (`Atlassian:getJiraIssue`) with:
 - cloudId: {jira_cloud_id}
 - issueIdOrKey: {jira_metric_baseline_ticket}
 
 Extract all GRO/metric targets, kill-gate thresholds, and milestone dates from the description.
 
 ### Step 2: Resolved + in-progress tickets — primary project(s)
-For each project in `jira_projects` (without a parent_epic), use `mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql`:
+
+Use the **Atlassian MCP** (`Atlassian:searchJiraIssuesUsingJql`).
+
+For each project in `jira_projects` (without a parent_epic):
 
 Resolved:
+- cloudId: {jira_cloud_id}
 - jql: `project = {PROJECT_KEY} AND status in (Done, Released) AND resolutiondate >= "{start_date}" AND resolutiondate <= "{end_date}"`
 - fields: ["summary", "assignee", "status", "issuetype", "id"]
 
 In-progress:
+- cloudId: {jira_cloud_id}
 - jql: `project = {PROJECT_KEY} AND status in ("In Progress", "In Review")`
 - fields: ["summary", "assignee", "status", "issuetype", "id"]
 
 ### Step 2b: Resolved + in-progress tickets — epic-scoped project(s)
-For each project in `jira_projects` with a `parent_epic`, use:
+
+Use `Atlassian:searchJiraIssuesUsingJql` for each project in `jira_projects` with a `parent_epic`:
 
 Resolved:
+- cloudId: {jira_cloud_id}
 - jql: `parent = {PARENT_EPIC} AND status in (Done, Released) AND statusCategoryChangedDate >= "{start_date}" AND statusCategoryChangedDate <= "{end_date}"`
 - fields: ["summary", "assignee", "status", "issuetype", "id", "resolutiondate"]
 - Fallback if zero results: `parent = {PARENT_EPIC} AND status changed to Done AFTER "{start_date}" AND status changed to Done BEFORE "{end_date}"`
 
 In-progress:
+- cloudId: {jira_cloud_id}
 - jql: `parent = {PARENT_EPIC} AND status in ("In Progress", "In Review", "Review", "Merge")`
 - fields: ["summary", "assignee", "status", "issuetype", "id"]
 
 ### Step 2c: Additional Asana sources (optional)
-If the bet config includes `asana_additional_sources`, query each one:
-- Use `mcp__claude_ai_Asana__get_tasks` with the project and section GIDs
-- Read full task details for each returned task
+
+If the bet config includes `asana_additional_sources`, query each one using the **Asana MCP** (`Asana:get_tasks`):
+- Pass the project GID and section GID
+- Read full task details for each returned task using `Asana:get_task`
 - Include tasks completed within [{start_date}, {end_date}] as additional completed items
 - Include uncompleted tasks as additional in-progress items
-- Use a descriptive topic key (not the source) when presenting in the report
+- Use the configured stream classification when presenting in the report
 
 ```yaml
-asana_additional_sources:                        # Optional: extra Asana sections to pull
+asana_additional_sources:
   - project: "1213884046770720"
     section: "1213884046770741"
-    stream: "AI Deal Creation"                   # Default stream classification
-    label: "AI Deal Creation Iteration Input"    # For internal reference only
+    stream: "AI Deal Creation"
+    label: "AI Deal Creation Iteration Input"
 ```
 
 ### Step 3: Tempo worklogs via Echelon
+
+> **Note:** Tempo is accessed via a direct Echelon API endpoint, not via MCP.
+> This step requires access to the Echelon service at octopus-app-zcwpc.ondigitalocean.app.
+> If the endpoint is unavailable, skip this step and return `"time_spent": null`.
+
 Call the Echelon endpoint directly via Bash:
 
 ```bash
@@ -391,10 +414,11 @@ Parse the worklog array from `result.content[0].text`.
 **Step 4a: Identify bet issue IDs**
 1. Collect all unique `jiraIssueId` values from the raw worklogs
 2. Add any IDs listed in `tempo_giq_issue_overrides` unconditionally
-3. For the remaining IDs, split into batches of 60 and run JQL per batch:
-   - `project in ({PROJECT_KEYS}) AND id in (<batch>)`
+3. For the remaining IDs, split into batches of 60 and run JQL per batch using `Atlassian:searchJiraIssuesUsingJql`:
+   - cloudId: {jira_cloud_id}
+   - jql: `project in ({PROJECT_KEYS}) AND id in (<batch>)`
    - If an epic scope applies: also include `parent = {PARENT_EPIC} AND id in (<batch>)`
-   - Use `mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql` — only fields `["id", "key"]` needed
+   - Only fields `["id", "key"]` needed
 4. Build the final set: all IDs returned by JQL queries + override IDs
 
 **Step 4b: Filter and aggregate**
@@ -434,7 +458,7 @@ Parse the worklog array from `result.content[0].text`.
   }
 }
 ```
-If Tempo returns no data, return `"time_spent": null` — master agent omits the section entirely.
+If Tempo returns no data or is unavailable, return `"time_spent": null` — master agent omits the section entirely.
 ---
 
 ## Subagent 3: Roadmap
@@ -444,17 +468,25 @@ Dispatch as a parallel subagent with the following prompt:
 ---
 You are collecting the {bet_name} roadmap to inform the GROW² plan for the next iteration.
 
+Use the **Asana MCP** for all queries.
+
 ### Doing tasks
-Use `mcp__claude_ai_Asana__get_tasks` with:
+
+First call `Asana:get_project` with the project GID `{asana_iteration_project}` to retrieve all sections and their GIDs. Find the section named "Doing".
+
+Then call `Asana:get_tasks` with:
 - project: {asana_iteration_project}
-- section: the "Doing" section GID (query `mcp__claude_ai_Asana_2__asana_get_project_sections` first if the GID is not known)
+- section: the "Doing" section GID
 
 ### Planned tasks
-Use `mcp__claude_ai_Asana__get_tasks` with:
+
+Using the same project sections from `Asana:get_project`, find the section named "Planned".
+
+Call `Asana:get_tasks` with:
 - project: {asana_iteration_project}
 - section: the "Planned" section GID
 
-For each task in both sections, call `mcp__claude_ai_Asana__get_task` to read the full description.
+For each task in both sections, call `Asana:get_task` to read the full description and notes.
 
 ### Output
 ```json
@@ -485,17 +517,19 @@ Dispatch as a parallel subagent with the following prompt:
 ---
 You are collecting 5/15 weekly updates for the {bet_name} team members for the week that overlaps with or immediately follows {end_date}. The 5/15 deadline is Friday — pick the Friday on or just after {end_date}.
 
+Use the **Asana MCP** for all queries.
+
 ### People and their parent task GIDs
 {asana_515_tasks: name → gid}
 
 ### Step 1: Get subtask lists
-For each person, call `mcp__claude_ai_Asana__get_task` with their parent GID and `include_subtasks: true`.
+For each person, call `Asana:get_task` with their parent GID. The response includes subtasks — retrieve them.
 
 ### Step 2: Find the target week
 Identify the subtask dated closest to and no earlier than {end_date}. Expected format: "5/15 - Name - YYYY-MM-DD". Accept any subtask within 7 days after {end_date}; if none, take the most recent before {end_date}.
 
 ### Step 3: Read subtask content
-Call `mcp__claude_ai_Asana__get_task` on each identified subtask. Read the `notes` field.
+Call `Asana:get_task` on each identified subtask. Read the `notes` field.
 
 ### Step 4: Filter for bet-relevant content only
 Extract ONLY information directly related to {bet_name} and its work streams ({stream names from config}). Exclude: other bets, personal items, KTLO unrelated to this bet, generic AI tips.
@@ -673,29 +707,29 @@ Gate decision: prominent badge at top of Executive Summary.
 
 ## Asana Write Operations
 
-Execute in sequence after approval.
+Execute in sequence after approval. Use the **Asana MCP** for all write operations.
 
 ### Section naming
 Format: `[MM/DD/YY-MM/DD/YY] {iteration_name}`
 Example: `[04/01/26-04/14/26] HBW Sign-Up — AI Draft V2`
 
 ### Step 1: Check for existing section
-Use `mcp__claude_ai_Asana_2__asana_get_project_sections` with project_id: {asana_iteration_project}
+Call `Asana:get_project` with project GID `{asana_iteration_project}` to retrieve all sections.
 If a section with this name already exists, warn the user and ask whether to proceed or cancel.
 
 ### Step 2: Create parent task
-Use `mcp__claude_ai_Asana__create_task_confirm`:
+Use `Asana:create_task_preview` to show a preview first, then confirm:
 - Name: `[MM/DD/YY-MM/DD/YY] {iteration_name}`
 - Project: {asana_iteration_project}
 
 ### Step 3: Create Iteration GROW² task
-Use `mcp__claude_ai_Asana__create_task_confirm`:
+Use `Asana:create_task_preview`:
 - Name: "Iteration GROW²"
 - Notes: [synthesized GROW² content]
 - Parent: GID from Step 2
 
 ### Step 4: Create Iteration Retrospective task
-Use `mcp__claude_ai_Asana__create_task_confirm`:
+Use `Asana:create_task_preview`:
 - Name: "Iteration Retrospective"
 - Notes: [synthesized Retrospective content]
 - Parent: GID from Step 2
@@ -710,7 +744,7 @@ Output links to the created tasks and parent task URL.
 - **No meetings in window:** Continue; Key Learnings flagged as sparse.
 - **5/15 not submitted:** Set `submitted: false`; note in Key Learnings.
 - **5/15 has no bet-relevant content:** Silently skip that person.
-- **No Tempo data:** Omit Time Spent section entirely.
+- **No Tempo data / Echelon unavailable:** Omit Time Spent section entirely — set `time_spent: null`.
 - **No resolved Jira tickets:** Delivery rate = 0; Gate = CONTINUE (low confidence — flag).
 - **Iteration scope > 30 MD:** Warn in draft that workplan exceeds GROW² limit.
 - **Gate Decision = STOP:** Next Steps left as placeholder.
@@ -718,3 +752,5 @@ Output links to the created tasks and parent task URL.
 - **Meeting date unparseable:** Skip with log warning; continue.
 - **Section already exists in Asana:** Warn user, ask to proceed or cancel.
 - **Metric baseline ticket not found:** Note in Results section; continue without targets.
+- **Atlassian MCP returns error:** Log inline, continue with available data.
+- **Asana MCP returns error:** Log inline, continue with available data.
