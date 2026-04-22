@@ -1,248 +1,175 @@
 ---
 name: standup-brief
-version: 2.1
 description: >
-  On-demand standup brief for Ankur Goyal's SFDC + GSOIT engineering teams.
-  Chains 5 live data sources autonomously — Jira blockers, Asana overdue,
-  Gmail priority unread, Calendar conflicts, then creates an Asana task
-  with the full brief summary. No confirmation or babysitting between steps.
-  Single command, single output, one Asana task created.
+  On-demand standup brief and team status analysis for Ankur Goyal's SFDC engineering team.
+  Pulls live data from Jira (SFDC sprint), Asana, Google Calendar, and Gmail unread emails,
+  then surfaces blockers, overdue items, urgent emails, and follow-ups in a structured report.
 
-  Trigger phrases (any of these starts the full chain):
-  - "standup", "morning brief", "team status", "team update"
-  - "what's the team working on", "what's blocked", "any blockers today"
-  - "what needs my attention", "daily brief", "quick standup"
-  - "full standup", "partial standup", "run the standup"
+  Use this skill whenever the user asks for any of the following — even casually or partially:
+  - "give me the standup brief", "morning brief", "run the standup", "team standup"
+  - "what's the team working on", "team status", "team update", "what's happening with the team"
+  - "show me the Jira blockers", "any blockers today", "what's blocked"
+  - "check my unread emails", "email triage", "what needs my attention in email"
+  - "what's [team member] working on", "show me [name]'s status"
+  - "anything I need to follow up on", "what needs my attention today"
+  - "full standup", "quick standup", "partial standup"
+  - Any combination of the above, e.g. "just email and calendar" or "Jira only"
 ---
 
-# Standup Brief Skill — v2.1
+# On-Demand Standup Brief
 
-## What this skill does
+You are generating a live standup brief for Ankur Goyal (agoyal@groupon.com) covering his SFDC engineering team. This skill is flexible — the user may want the full brief or just specific sections. Read their request carefully and scope the analysis accordingly.
 
-Runs a 5-step chain sequentially, without stopping for confirmation, and:
-1. Pulls live data from 4 sources
-2. Produces a single formatted brief
-3. Creates an Asana task in Ankur's My Tasks with the full brief as the task description
+## Step 0 — Determine Scope
 
-**Chain order (fixed — do not reorder):**
-1. Jira — blockers and in-progress across SFDC + GSOIT
-2. Asana — overdue or urgent tasks assigned to Ankur or his team
-3. Gmail — priority unread requiring action today
-4. Calendar — conflicts or back-to-back meetings that need attention
-5. Asana task creation — create daily standup record in My Tasks
+Before gathering data, parse the user's request to determine which sections to run:
 
----
+| User asks for… | Sections to include |
+|---|---|
+| "full brief" / "standup brief" / no qualifier | ALL sections |
+| "Jira" / "blockers" / "sprint status" | Jira only |
+| "Asana" / "tasks" / "to-dos" | Asana only |
+| "calendar" / "meetings today" | Calendar only |
+| "email" / "inbox" / "unread" / "follow-ups" | Email only |
+| "just [name]" / "[name]'s status" | All sections, filtered to that person |
+| Mixed e.g. "email and Jira" | Those two sections only |
 
-## Chain execution rules
-
-- **Run all 5 steps unconditionally.** Do not stop after any step.
-- **Do not ask for permission between steps.** The trigger phrase is the permission.
-- **Do not narrate what you're doing.** Silent execution, single output.
-- **Do not wait for the user to say "continue"** after any step.
-- If a source returns no data, output "None" for that section — do not skip it.
-- If an MCP call fails, note the failure inline and continue to the next source.
-- Step 5 (Asana task creation) runs after the brief is fully assembled.
-- Total execution target: under 90 seconds.
+When in doubt, run the full brief — it's better to give more than less.
 
 ---
 
-## Step 1 — Jira (SFDC + GSOIT boards)
+## Step 1 — Identify the Team (skip if only Calendar or Email requested)
 
-**MCP:** Atlassian MCP — Jira
+Use `searchJiraIssuesUsingJql` with:
+```
+project = SFDC AND sprint in openSprints()
+```
+Collect all unique assignees. These are the team members. Always include Ankur himself.
 
-### 1a. Blocked tickets — both boards
-```
-JQL: project in (SFDC, GSOIT) AND sprint in openSprints() AND status = Blocked ORDER BY priority ASC
-```
+If the user asked for a specific person only, filter all subsequent steps to just that person.
 
-### 1b. Reopened tickets — both boards
-```
-JQL: project in (SFDC, GSOIT) AND sprint in openSprints() AND status = Reopened
-```
-
-### 1c. In Progress — by person, both boards
-```
-JQL: project in (SFDC, GSOIT) AND sprint in openSprints() AND status = "In Progress" ORDER BY assignee ASC
-```
-
-### 1d. Stale tickets — no update in 2+ days
-```
-JQL: project in (SFDC, GSOIT) AND sprint in openSprints() AND status not in (Done, Cancelled) AND updated < -2d
-```
-
-**Format rules:**
-- Blockers and Reopened → always at the top with ticket key + assignee + one-line summary
-- In Progress → grouped by person, one line per ticket
-- Stale → list only if more than 3 exist
-- Flag any AI workstream tickets (AI, agent, genie, MCP in summary)
+**Known team** (use as fallback if Jira is unavailable):
+- Ankur Goyal — agoyal@groupon.com
+- Amit Patil — amipatil@groupon.com
+- Ashwinkrishna M — akrishnam@groupon.com
+- Kumar Ankit — kankit@groupon.com
+- Nirajkumar Shelke — nshelke@groupon.com
+- Niveditha Ramegowda — niver@groupon.com
+- Srilakshmi K S — sriks@groupon.com
+- Utkarsh Pathak — upathak@groupon.com
 
 ---
 
-## Step 2 — Asana
+## Step 2 — Gather Data (run all applicable sections in parallel)
 
-**MCP:** Asana MCP
+### Jira (SFDC sprint)
+For each person in scope:
+- Fetch their issues from the current SFDC open sprint
+- Flag: **BLOCKED** status, overdue due dates, no update in 2+ days, stuck in same status for 2+ days
+- Note issue key, summary, status, priority
 
-**Pull:**
-- Tasks assigned to Ankur Goyal that are overdue or due today
-- Tasks in SFDC or GSOIT Asana projects that are overdue with no recent update
-- Any tasks where Ankur is mentioned in a comment in the last 24 hours
+### Asana
+Search tasks in the main SFDC-related Asana projects (SPL-SF Requests, Technical Debt, Customer Support AI Agent). For each person in scope:
+- Find incomplete tasks assigned to them
+- Flag: overdue (due_on < today), due today, no recent activity (modified > 3 days ago), high priority stalled
 
-**Format rules:**
-- One line per task: task name · due date · owner
-- Group by: Overdue → Due today → Mentioned
-- Skip Complete or Archived tasks
+### Calendar (Ankur only)
+Use `gcal_list_events` for today (full day range, condenseEventDetails=false):
+- List all meetings with times and attendees
+- Flag: overlapping meetings, back-to-back blocks with no buffer, meetings with no agenda/description, meetings with no-agenda from external parties
 
----
+### Email (Ankur only)
+Use `gmail_search_messages` in parallel:
+- Query 1: `is:unread in:inbox` (limit 30)
+- Query 2: `is:unread in:inbox is:important` (limit 20)
 
-## Step 3 — Gmail
-
-**MCP:** Gmail MCP
-
-**Pull:**
-- Unread emails marked Important in the last 48 hours
-- Unread emails from: Dennis Bertelkamp, Michal Jilka, Chris Hill, Maciej Kołodziej, Josef Sima, Zeph Buck, Samuel Garcia Rio
-- Emails with: "blocker", "urgent", "action required", "approval", "escalation", "prod", "incident" in subject
-
-**Format rules:**
-- Maximum 5 items — most action-critical only
-- Each item: sender · subject (60 chars max) · one-line summary · action tag
-- Tags: [Reply needed] [FYI] [Approval] [Escalation]
-- Skip newsletters, automated Asana/Jira notifications, calendar invites
+For each unique email, use `gmail_read_message` to read subject, sender, and body. Classify:
+- 🔴 **Urgent / Action Required** — explicit ask, deadline, escalation, approval request, external stakeholder waiting. Signals: "urgent", "ASAP", "waiting on you", "please confirm", "by EOD", "blocked on you"
+- 🟡 **Follow-Up Needed** — thread where a response is overdue (no reply in 2+ days), or Ankur's team was expected to act and hasn't
+- 🔵 **FYI** — newsletters, automated notifications, CC'd with no action. **Omit these from the output.**
 
 ---
 
-## Step 4 — Calendar
+## Step 3 — Compose the Brief
 
-**MCP:** Google Calendar MCP
-
-**Pull for today:**
-- All events from now until end of day (IST)
-- Flag: back-to-back meetings < 5 min gap
-- Flag: meetings with no agenda
-- Flag: overlapping events
-
-**Format rules:**
-- List remaining meetings: time (IST) · name · duration · flags
-- Do not list focus time blocks or OOO markers
-- If clear for next 2 hours → note as build window
+Use only the sections that were requested. Always lead with the most actionable information.
 
 ---
 
-## Step 5 — Create Asana Task (daily standup record)
+### 🗓 Today's Meetings — [Date]
+*(Include only if Calendar was in scope)*
 
-**MCP:** Asana MCP
-**Runs:** After the full brief is assembled from Steps 1–4
-**Purpose:** Persistent daily record of the standup in Asana, searchable and reviewable later
-
-### Task spec:
-- **Name:** `Standup Brief — [Day, Date e.g. Mon, Apr 14]`
-- **Assignee:** Ankur Goyal (me)
-- **Due date:** Today's date
-- **Description:** The complete formatted standup brief from Steps 1–4, in plain text
-
-### What goes in the description:
-```
-Auto-generated standup brief — [Date] · [Time IST]
-Generated by: standup-brief skill v2.1
-
-=== BLOCKERS & URGENT ===
-[Section 1 content]
-
-=== IN PROGRESS — BY PERSON ===
-[Section 2 content — SFDC, GSOIT, AI workstreams]
-
-=== ASANA — OVERDUE OR DUE TODAY ===
-[Section 3 content]
-
-=== EMAIL — NEEDS ACTION TODAY ===
-[Section 4 content]
-
-=== CALENDAR — TODAY ===
-[Section 5 content]
-
-=== MY FOCUS FOR TODAY ===
-[Focus bullets]
-```
-
-### Creation rules:
-- Create in Ankur's My Tasks (workspace: groupon.com, assignee: me)
-- Do NOT add to any project — My Tasks only
-- Do NOT ask for confirmation — create immediately after brief is assembled
-- If creation fails, note the failure at the end of the brief output and continue
-- One task per day — name includes the date so duplicates are identifiable
+List meetings chronologically with times (user's local timezone). For each:
+- Meeting name, time range, key attendees
+- ⚠️ flag any overlaps, conflicts, or agenda-less external meetings
 
 ---
 
-## Output format
+### 📧 Email Triage
+*(Include only if Email was in scope)*
 
-Produce this structure in chat. The Asana task is created silently — no separate announcement, just append a single line at the end:
+#### 🔴 Urgent — Action Required Today
+- **From:** Name (email)
+- **Subject:** …
+- **What's needed:** One sentence
+- **Urgency signal:** The specific phrase or context
 
-```
-## Standup brief — [Day, Date] · [Time IST]
+*If none: "No urgent emails requiring action today."*
 
-### Blockers & urgent — action needed now
-- [SFDC/GSOIT] TICKET-XXXX · [Assignee] · [One-line issue] · [What's blocking it]
-- ... (or: None)
+#### 🟡 Follow-Up Needed
+- **From:** Name (email)
+- **Subject:** …
+- **What's needed:** One sentence
 
-### In progress — by person
-
-**SFDC**
-- [Name]: TICKET-XXXX — [summary] · [TICKET-XXXX — summary]
-
-**GSOIT**
-- [Name]: TICKET-XXXX — [summary]
-
-**AI workstreams**
-- TICKET-XXXX · [Assignee] · [summary] · Status: [status]
-
-### Asana — overdue or due today
-- [Task name] · Due [date] · Owner: [name] · [action tag]
-- ... (or: None)
-
-### Email — needs action today
-- [Sender] · "[Subject]" · [One-line: what's needed] · [action tag]
-- ... (or: None)
-
-### Calendar — today
-- [HH:MM] [Meeting name] ([duration]) [flags if any]
-- Free window: [time range] — [use this for: ...]
-
-### My focus for today
-- [Priority 1]
-- [Priority 2]
-- [Priority 3]
-
----
-_Standup task created in Asana: [task name] · [date]_
-```
+*If none: "No pending follow-ups identified."*
 
 ---
 
-## Partial standup variants
+### 👥 Team Status
+*(Include only if Jira or Asana was in scope)*
 
-- "just Jira" / "email only" → run only that step, no Asana task created
-- "quick standup" → run all steps, truncate each to 3 items, still create Asana task
+For each person in scope (Ankur first, then alphabetically by first name):
 
----
-
-## Auto-run setup (Claude Code + cron)
-
-When running via `standup.sh` (Claude Code headless), the Asana task creation
-uses the Asana MCP API directly — no UI confirmation required. See `standup.sh`.
-
-Cron schedule for 9:30 AM IST (4:00 AM UTC):
-```
-0 4 * * 1-5 /path/to/standup.sh >> ~/standup-logs/standup.log 2>&1
-```
+**[Full Name]**
+- **Jira (SFDC Sprint):** Issues with status. Bold any 🚨 BLOCKED or ⚠️ flagged items.
+- **Asana:** Overdue or due-today tasks. Note anything stalled.
+- **Status:** One sentence — where do they stand right now?
 
 ---
 
-## Skill notes
+### 🚨 Needs Attention
 
-- Sprint context: SFDC (Apr 10–Apr 23), GSOIT (Apr 8–Apr 22) — Q2 Sprint 1
-- Always check SFDC-10103, SFDC-10055 (Niveditha INTL CDA — recurring blockers)
-- Always check GSOIT-6369 (Cyclops latency — Datta — do not clear until resolved)
-- AI workstreams to always surface: SFDC-10144, SFDC-10161, GSOIT-6331, GSOIT-6332, GSOIT-6334
-- **Never create calendar events as part of this or any workflow**
-- Asana user GID: 1211542692184092
-- Asana workspace GID: 8437193015852
+A consolidated, prioritised list of the most critical items. Include only real flags — don't pad with minor items.
+
+Format: `[Name] — [Source] — [Item] — [Why flagged]`
+
+Rank order:
+1. Blockers (need unblocking today)
+2. Overdue items
+3. Urgent emails awaiting response
+4. Capacity gaps (anyone with nothing assigned)
+5. Calendar conflicts
+
+---
+
+### 📋 Today's Focus
+*(Include always, even in partial briefs)*
+
+3–5 sentences. Synthesise what Ankur should actually do first when he starts work. Reference the single highest-priority item from each active section. Be direct — don't hedge.
+
+---
+
+## Delivery
+
+Output the brief **inline in the conversation** (not as a file, not as an Asana task — that's the scheduled version's job). Use clean markdown formatting. Keep it scannable — the user is reading this at the start of their day.
+
+If the user explicitly asks to also create an Asana task, do so using `create_task_preview` with today's date and the full brief as the description, assigned to agoyal@groupon.com.
+
+---
+
+## Tips for Good Output
+
+- **Be specific, not generic.** "SFDC-9808 is BLOCKED — TIN banner" is useful. "Some items need attention" is not.
+- **Omit noise.** Don't list Done/Resolved Jira tickets unless the user asked. Don't list 🔵 emails. Don't mention "No data found" for every tool if it's irrelevant to the scope.
+- **Surface the critical path.** If 4 things are happening, what's the one that derails the sprint if it slips? Say that.
+- **Use the team member's actual first name** in the Focus section, not just their email.
