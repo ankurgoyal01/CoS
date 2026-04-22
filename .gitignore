@@ -4,3 +4,5 @@ temp/
 .DS_Store
 *.log
 .salesforce-session.json
+projects/SFDC/scripts/agents/knowledge/
+logs/tdd/
