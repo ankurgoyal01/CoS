@@ -1,6 +1,6 @@
 # team.md — Ankur Goyal's Engineering Teams
 > Read at session start when standup, task assignment, or people management is the topic.
-> Last updated: April 17, 2026
+> Last updated: April 23, 2026 — Q2 Sprint 2 start. Live Jira data stale (MCP OAuth expired).
 
 ---
 
@@ -139,27 +139,30 @@ Web services: Java, Ruby on Rails, Node.js, Python. 14 services total.
 
 ---
 
-## Current Sprint Snapshot (Q2 Sprint 1 — Week 2)
+## Current Sprint Snapshot (Q2 Sprint 2)
 
-**SFDC:** Apr 10–23 · **GSOIT:** Apr 8–22
+**SFDC:** Apr 23 – May 6 · **GSOIT:** Apr 23 – May 6
+> Last updated: Apr 23, 2026. Live Jira data not pulled (Atlassian MCP OAuth needs refresh — run `/mcp` to reconnect, then ask "update sprint snapshot").
 
-### Blockers / at-risk
-- `SFDC-9169` Kumar — cross-reference validation blocked
-- `GSOIT-6391` Rakesh — merchant case creation endpoint Reopened
-- `GSOIT-6362` Ravindra — Email Dashboard tab Reopened
-- `GSOIT-6369` Datta — Cyclops latency spike ongoing (do not clear)
+### Carry-over watch items (from Q2 Sprint 1 — confirm status in new sprint)
+- `SFDC-9169` Kumar — cross-reference validation — was Blocked, confirm if resolved or carried over
+- `GSOIT-6369` Datta — Cyclops latency spike — was In Progress, **do not clear until root cause confirmed**
+- `GSOIT-6391` Rakesh — merchant case creation endpoint — was Reopened
+- `GSOIT-6362` Ravindra — Email Dashboard tab — was Reopened
 
-### Moved forward this week (notable)
-- `SFDC-10103 + 10055` Niveditha — INTL CDAs now in QA (were blocked since Q1!)
-- `SFDC-10201` Nirajkumar — Claude + CI/CD automation in Review
-- `SFDC-10161` Ankur — Salesforce MCP Setup in Review
+### Q2 Sprint 1 notable completions (verify Done status)
+- `SFDC-10103 + 10055` Niveditha — INTL CDAs reached QA
+- `SFDC-10201` Nirajkumar — Claude + CI/CD automation was In Review
+- `SFDC-10161` Ankur — Salesforce MCP Setup was In Review
+- `GSOIT-6332` Ravindra — AI agent for cs-api was in QA
+- `GSOIT-6385 + 6379` Rakesh — typo fix + AI Case Format Fix were Deploy-ready
 
-### AI workstreams active
-- `SFDC-10144` Ashwinkrishna — Salesforce-genie In Progress
-- `SFDC-10161` Ankur — SF MCP Setup In Review
-- `SFDC-10201` Nirajkumar — Claude + CI/CD automation In Review
-- `GSOIT-6331` Ravi — Dynamic SF Fetch endpoint In Progress
-- `GSOIT-6395` Michal/team — Unified Customer Profile hackathon In Progress
+### AI workstreams — carry into Sprint 2
+- `SFDC-10144` Ashwinkrishna — Salesforce-genie (was In Progress)
+- `SFDC-10161` Ankur — SF MCP Setup (was In Review — highest priority for L6 unlock)
+- `SFDC-10201` Nirajkumar — Claude + CI/CD automation (was In Review)
+- `GSOIT-6331` Ravi — Dynamic SF Fetch endpoint (was In Progress)
+- `GSOIT-6395` Michal/team — Unified Customer Profile hackathon (was In Progress)
 
 ---
 
