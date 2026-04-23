@@ -47,7 +47,7 @@ CURRENT_TICKETS=$(curl -s \
   -u "$ATLASSIAN_EMAIL:$ATLASSIAN_TOKEN" \
   -X POST \
   -H "Content-Type: application/json" \
-  -d "{\"jql\":\"project = $JIRA_PROJECT AND $JIRA_SPRINT_FIELD = \\\"$JIRA_SPRINT_NAME\\\"\",\"maxResults\":50,\"fields\":[\"summary\",\"description\",\"comment\",\"priority\",\"issuetype\",\"created\"]}" \
+  -d "{\"jql\":\"project = $JIRA_PROJECT AND status = \"To Do\" AND $JIRA_SPRINT_FIELD = \\\"$JIRA_SPRINT_NAME\\\"\",\"maxResults\":50,\"fields\":[\"summary\",\"description\",\"comment\",\"priority\",\"issuetype\",\"created\"]}" \
   "$JIRA_BASE/rest/api/3/search/jql")
 
 # Check for API error
@@ -116,18 +116,18 @@ print(json.dumps(result))
 ")
 
 # ── Diff against state file — find NEW tickets only ───────────────────────────
-NEW_TICKETS=$(python3 << PYEOF
+NEW_TICKETS=$(printf '%s' "$PARSED_TICKETS" | python3 -c "
 import json
+import sys
 
-with open("$STATE_FILE") as f:
+with open('$STATE_FILE') as f:
     state = json.load(f)
 
-processed = set(state.get("processed", {}).keys())
-tickets   = json.loads("""$PARSED_TICKETS""")
-new_ones  = [t for t in tickets if t["key"] not in processed]
+processed = set(state.get('processed', {}).keys())
+tickets = json.load(sys.stdin)
+new_ones = [t for t in tickets if t['key'] not in processed]
 print(json.dumps(new_ones))
-PYEOF
-)
+")
 
 NEW_COUNT=$(echo "$NEW_TICKETS" | python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))")
 
