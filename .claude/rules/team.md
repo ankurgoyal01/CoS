@@ -1,6 +1,6 @@
 # team.md — Ankur Goyal's Engineering Teams
 > Read at session start when standup, task assignment, or people management is the topic.
-> Last updated: April 23, 2026 — Q2 Sprint 2 start. Live Jira data stale (MCP OAuth expired).
+> Last updated: April 24, 2026 — Q2 Sprint 2, Week 1
 
 ---
 
@@ -10,169 +10,185 @@
 - **Title:** Engineering Manager — SFDC + GSOIT
 - **Manager:** Josef Sima
 - **Location:** Bengaluru, India (IST, UTC+5:30)
-- **Jira GID:** agoyal@groupon.com
+- **Jira:** agoyal@groupon.com
+- **GitHub handle:** `agoyal`
 - **Asana GID:** 1211542692184092
+- **AI Maturity:** L8 confirmed Apr 22, 2026
 
 ---
 
 ## SFDC Team — 7 members
 
-Salesforce platform: Apex, LWC, Flows, Triggers, Sales Cloud, Service Cloud, integrations.
-
 ### Ashwinkrishna M
-- **Role:** Senior Salesforce Developer
-- **Strengths:** Apex, LWC, Sales Cloud, AI integrations
-- **Current focus:** SFDC-10144 AI Driven Dev / Salesforce-genie production launch · SFDC-10137/10136 XFiles Pro archival jobs
+- **Role:** Senior Salesforce Developer · **AI Maturity:** L3
+- **BET:** QR-1612 (SF Cleanup — XFiles Pro archival)
+- **Q2 Sprint 2 focus:** SFDC-10243 Automated emails for MO contacts spike · SFDC-10221 sf-bot auto-invoke @jarvis→@sf-bot
+- **Signal:** Set up Salesforce MCP server for Google Workspace — one-click installer, Claude Desktop + Groupon Google auth. Unblocks team-wide MCP adoption. Used Claude Code to prototype @jarvis→@sf-bot listener.
 - **GitHub:** `akrishnam`
-- **Signal:** Strong Apex engineer, taking ownership of AI-in-SF workstream. Growing into AI-first development pattern.
-- **Watch:** XFiles archival work spans multiple tickets — track for scope creep.
+- **Watch:** SFDC-10136 XFiles Pro archival blocked on vendor connection error. Need date commitment from vendor by Apr 29. If none, escalate through procurement.
+- **Path to L4:** Context engineering — memory files, deliberate prompt patterns. Discuss in 1:1.
 
 ### Niveditha Ramegowda
-- **Role:** Senior Salesforce Developer
-- **Strengths:** Apex, LWC, Service Cloud, complex multi-object flows
-- **Current focus:** SFDC-10103 + SFDC-10055 INTL CDA (now in QA — unblocked!) · SFDC-10157 Dynamic Layout UAT · SFDC-10185 Declarative Automations Migration spike
+- **Role:** Senior Salesforce Developer · **AI Maturity:** L2
+- **BET:** QR-1624 (Margin Control)
+- **Q2 Sprint 2 focus:** Margin Control UAT · INTL CDA UK add-option amendment testing · Declarative Automations Migration
+- **Signal:** Dynamic Layout UAT completed — all concerns resolved. Declarative Automations analysis done across 4 objects with Claude export. All tickets closed on time.
 - **GitHub:** `niver`
-- **Signal:** INTL CDA recurring blocker pattern finally moving to QA. High-quality delivery when unblocked. Depth in Service Cloud.
-- **Watch:** Multiple concurrent tickets — prioritise Dynamic Layout UAT completion before new scope.
-- **Note:** INTL CDA blockers (SFDC-10103, SFDC-10055) were a recurring pattern across Q1 — root cause was stakeholder sign-off dependency on AdobeSign templates, not engineering.
+- **Watch:** 5/15 AI Signal needs specificity — ticket + outcome + time saved, not just "using AI." SFDC-8143 catch-all needs individual Jira links per item.
+- **Note:** INTL CDA (SFDC-10103/10055) resolved Q2 Sprint 1. Root cause: AdobeSign template + stakeholder sign-off dependency, not engineering.
 
 ### Nirajkumar Shelke
-- **Role:** Senior Salesforce Developer
-- **Strengths:** Apex, Triggers, integrations, data cleanup
-- **Current focus:** SFDC-10201 AI-driven Claude + CI/CD automation (Review) · SFDC-10173 Hierarchy Cleanup spike (Review) · SFDC-10158 Data Cleanup spike · SFDC-10138 Translation Request cleanup (QA)
+- **Role:** Senior Salesforce Developer · **AI Maturity:** L4 → L5
+- **BET:** QR-1612 (SF Cleanup — data storage, automations), QR-1658 (PoF EMEA — Salesforce side)
+- **Q2 Sprint 2 focus:** SFDC-10242 Automated memos creation spike · PoF EMEA QA + UAT handover · XFiles Pro archival connection resolution
+- **Signal:** Best AI delivery on SFDC this week — 63 GB storage freed (25M records), pre-PR code review skill added as pre-flight before sf-pr-creation agent, ~50% spike time reduction with sf-project-planner. Led team meta-repo onboarding. PoF EMEA SF-side deployed to staging.
 - **GitHub:** `nshelke`
-- **Signal:** SFDC-10201 is notable — building Claude + CI/CD automation end-to-end. Strongest signal of AI-first development on the SFDC team alongside Ashwinkrishna.
-- **Watch:** SFDC-10201 should be showcased — it's exactly what Dusan's Foundry scanner values.
+- **Action:** 30-min sync with Amit this week — SFDC-10242 (automated memos) and SFDC-10243 (automated emails) are same pattern. Build one shared skill.
+- **Path to L5:** Orchestration already demonstrated. Set specific L5 target in next 1:1.
 
 ### Kumar Ankit
-- **Role:** Senior Salesforce Developer
-- **Strengths:** Apex, LWC, Sales Cloud, Account Skew
-- **Current focus:** SFDC-10082 Idle Time automation revamp (QA) · SFDC-10077 Account Skew sharing rules cleanup · SFDC-9169 Cross-reference validation (Blocked)
+- **Role:** Senior Salesforce Developer · **AI Maturity:** L2
+- **BET:** QR-1612 (SF Cleanup — cross-reference validation)
+- **Q2 Sprint 2 focus:** Post SFDC-9169 resolution work
+- **Signal:** SFDC-9169 cross-reference validation Done this week after multiple sprint blockage.
 - **GitHub:** `kankit`
-- **Signal:** Solid delivery. SFDC-9169 is blocked — needs investigation on cross-reference validation root cause.
-- **Watch:** Account Skew work (SFDC-10077/9) is low-profile but high business value — flag for sprint review visibility.
 
 ### Amit Patil
-- **Role:** Senior Salesforce Developer
-- **Strengths:** Apex, Flows, Service Cloud, escalation logic, OCR
-- **Current focus:** SFDC-10186 Escalation Visibility Logic · SFDC-10089 AI Content Generation in Vetted stage (Deploy — ready!) · SFDC-9973 OCR for ContentOps UAT support
+- **Role:** Senior Salesforce Developer · **AI Maturity:** L2 → L3
+- **BET:** QR-1624 (Margin Control), QR-1614 (Customer AI Agent — OCR/ContentOps)
+- **Q2 Sprint 2 focus:** SFDC-10236 Margin Control pop-up notification (Apr 29) · SFDC-10241 Margin Control UAT + prod readiness · SFDC-9974 OCR ContentOps (carry-over) · SFDC-10170 (Apr 30)
+- **Signal:** 2 prod deployments (SFDC-10200, SFDC-9568). Using Claude for end-to-end development on all tickets.
 - **GitHub:** `amipatil`
-- **Signal:** SFDC-10089 is ready to deploy. OCR work (SFDC-9973) has cross-team dependency on ContentOps.
-- **Watch:** SFDC-10089 deploy needs sign-off today — it's been sitting at Deploy status.
+- **Watch:** SFDC-9974 carry-over now 2 weeks — written deadline to ContentOps stakeholder Monday. Escalate to EM if no response Wednesday. 5/15 suggestions section must have one concrete item next week.
+- **Action:** 30-min sync with Nirajkumar — automated emails (SFDC-10243) and automated memos (SFDC-10242) are same pattern, build shared skill.
 
 ### Srilakshmi K S
-- **Role:** Salesforce Administrator
-- **Strengths:** Config, reports, dashboards, data ops, support case management
-- **Current focus:** SFDC-10156/10155 Support cases management (In Progress + QA)
+- **Role:** Salesforce Administrator · **AI Maturity:** L1
+- **BET:** KTLO / Support
 - **GitHub:** N/A (admin, non-coding)
-- **Signal:** Steady admin delivery. Support case management is a sprint constant.
+- **Note:** 5/15 not submitted week of Apr 20–24. Follow up.
 
 ### Utkarsh Pathak
-- **Role:** Salesforce Administrator
-- **Strengths:** Config, automation, deployments, AdobeSign template management
-- **Current focus:** SFDC-10169/10168/10167/10166/10165 Support cases management (multiple In Progress + QA)
+- **Role:** Salesforce Administrator · **AI Maturity:** L2 → L3
+- **BET:** KTLO / Support
+- **Q2 Sprint 2 focus:** SFDC-10218 Spam Button on CTSR cases · SFDC-10219 Call duration automation
+- **Signal:** Built complete Apex solution end-to-end with Claude — triggers, handlers, email notifications, approval workflows, exception handling, test classes. Used SF chatbot for SOQL debugging and bulk ID lookups. L2→L3 progression in practice.
 - **GitHub:** N/A (admin, non-coding)
-- **Signal:** High volume of support case tickets — consistently delivering. NA contract template work (SFDC-10178) completed last week.
+- **Watch:** 5/15 priorities, top achievement, and suggestions all blank this week. Coached. Expect improvement.
 
 ---
 
 ## GSOIT Team — 4 members
 
-Web services: Java, Ruby on Rails, Node.js, Python. 14 services total.
-
-> I took over GSOIT from Vijayamoorthy R. Tech lead assignments updated — services report not yet reflecting new owners.
+Web services: Java, Ruby on Rails, Node.js, Python. 14 services.
 
 ### Ravi Kumar
-- **Role:** Principal Developer
-- **Strengths:** Full-stack, Pizza NG, Ingestion Service, RPA, Webbus, AI integrations
+- **Role:** Principal Developer · **AI Maturity:** L4 → L5
+- **BET:** QR-1631 (Merchant Lifecycle — cs-api, Ingestion Service)
 - **Services:** Pizza NG, Ingestion Service, RPA, Webbus
-- **Current focus:** GSOIT-6331 AI Usage / Dynamic SF Fetch Endpoint in ingestion-service (In Progress)
+- **Q2 Sprint 2 focus:** GSOIT-6291 Lazlo retry (in review) · GSOIT-6382 Escalation Approver webhook (in review) · GSOIT-6455 cs-api 503 follow-ups · SFDC-9909 EchoSign (carry-over, new scope)
+- **Signal:** Best 5/15 on the team. cs-api 503: root-caused → minReplicas 2→3 all regions → mls-rin timeout 15s→5s — all within the week. Opus caught 3 pre-PR bugs on Lazlo retry (jitter asymmetry, null-guard, missing terminal log). Recommending Opus as standard for retry/backoff code — added to patterns.md.
 - **GitHub:** `kumarra`
-- **Performance trend:** Strong Q1 2026 surge — 53 PRs, growing repo footprint. AI-first work on SF fetch endpoint is high-value.
-- **Signal:** Most versatile engineer in GSOIT. Candidate for tech lead pathway Q2. AI usage ticket is a high-visibility deliverable.
-- **Watch:** Webbus (Ruby 1.9.3 EOL) — any change here is high-risk. Escalate immediately.
+- **Watch:** SFDC-9909 EchoSign new scope — pick up Q2 Sprint 2, not carry again.
+- **Path to L6:** Headless scripts calling Claude Code. Discuss in next 1:1.
 
 ### Rakesh Haridas
-- **Role:** Senior Developer
-- **Strengths:** Backend API (cs-api), Cyclops, SSR, refund flows, chatbot integrations
+- **Role:** Senior Developer · **AI Maturity:** L2
+- **BET:** QR-1614 (Customer AI Agent — chatbot backend, Merchant Assistant APIs)
 - **Services:** Cyclops, CS-Token Service, Deal Panel, Deal Wizard, Salesforce-Cache
-- **Current focus:** GSOIT-6404 Delayed Refund prod verification (QA) · GSOIT-6391 Merchant case creation endpoint (Reopened) · GSOIT-6388 SSR Mass Refund monitoring · GSOIT-6372 Merchant bot stop/pause deal (QA) · GSOIT-6356 SSR fields in custom-data · GSOIT-6223 E-Gift card redemption
+- **Q2 Sprint 2 focus:** GSOIT-6398 MarketRate booking info · GSOIT-6457 Merchant Assistant Case Update · GSOIT-6399 Cancellation policy fields · GSOIT-6418/6423 Bucks defects · GSOIT-6417 Cyclops BQ pipeline spike
+- **Signal:** GSOIT-6446 Merchant Assistant API enhancements (Case Retrieval, Case Update, Deal Pause) Done — unblocks Merchant Assistant downstream team.
 - **GitHub:** `rharidas`
-- **Performance trend:** Highest Q3 PR count (54). Q1 dip — monitor Q2 velocity. Review activity strong.
-- **Signal:** High breadth across customer-facing services. GSOIT-6391 Reopened needs attention.
-- **Watch:** GSOIT-6391 reopened — understand root cause before it gets reopened again.
+- **Watch:** 7 tickets listed for next sprint — stack-rank to top 3 before Monday. Top achievement and suggestions blank. AI Signal section needs personal AI usage, not just chatbot work.
+- **Path to L3:** Build one custom skill or repeatable workflow this sprint. Discuss in 1:1.
 
 ### Datta Maddala
-- **Role:** Senior Developer
-- **Strengths:** Full-stack, Salesforce ETL, Airflow, Bloomreach B2B, metrics
+- **Role:** Senior Developer · **AI Maturity:** L3
+- **BET:** QR-1631 (Merchant Lifecycle — BR↔SF sync, ETL), QR-1612 (SFDC-ETL)
 - **Services:** SFDC-ETL, Salesforce-Metrics
-- **Current focus:** GSOIT-6407 BR to Salesforce Email Notification Logging spike · GSOIT-6369 Cyclops Latency spike investigation · GSOIT-6358 Giftee refund via Cyclops bot · GSOIT-6349 Gift Recipient Cyclops Issue (QA) · GSOIT-6121 Merchant email alerts investigation
+- **Q2 Sprint 2 focus:** GSOIT-6427 Cyclops/cs-api latency fix deployment + staging verification · GSOIT-6429 BR→SF email deliverability webhook · GSOIT-6400 AI Usage/Playwright (must close — 2nd sprint carry-over)
+- **Signal:** GSOIT-6358 giftee refund + GSOIT-6349 gift recipient deployed to production. Playwright automation for refund audit record gathering during Cyclops latency investigation — automated manual data collection.
 - **GitHub:** `dmaddala`
-- **Performance trend:** Highest total reviews (165 across 3 quarters). Consistent quality. Q1 push on Bloomreach B2B integration.
-- **Signal:** Cyclops latency investigation (GSOIT-6369) ongoing — do not clear until root cause confirmed. High review engagement = knowledge hub.
-- **Watch:** GSOIT-6369 Cyclops latency — no schema/API changes until resolved.
+- **Bloomreach context:** BR→SF email deliverability webhook POC done (GSOIT-6429). Full dev pending Kateryna Usova's CSV export spec from Bird↔BQ.
+- **Action:** GSOIT-6400 — commit to Done date in next 5/15. Connect with Ashwinkrishna on Playwright Chrome session reuse for MCP without Okta (Datta's suggestion — prototype Q2 Sprint 2).
+- **Watch:** GSOIT-6369 Cyclops latency — fix proposals in progress (GSOIT-6427). No schema/API changes until root cause confirmed resolved.
 
 ### Ravindra Kumar
-- **Role:** Senior Developer
-- **Strengths:** Full-stack + Infrastructure, Help Center rollout, routing, cs-api
+- **Role:** Senior Developer · **AI Maturity:** L2
+- **BET:** QR-1631 (Merchant Lifecycle — cs-api endpoints, post-refund recommendations)
 - **Services:** Cyclops As A Platform (cs-api), Transporter-Jtier, Transporter-Itier
-- **Current focus:** GSOIT-6378 Post-Refund Deal Recommendations cs-api endpoint (Review) · GSOIT-6362 Email Dashboard tab Reopened · GSOIT-6305 Pre-purchase data pipeline spike
+- **Q2 Sprint 2 focus:** GSOIT-6378 Post-Refund Recommendations CS-API (blocked — #1 priority) · GSOIT-6417 Cyclops BQ pipeline spike
+- **Signal:** Resolved live promo code incident end-to-end on on-call. GSOIT-6389 Gift Voucher Dashboard deployed to production. Pre-purchase spike document completed.
 - **GitHub:** `ravikumar`
-- **Performance trend:** Standout growth — 42 → 48 → 55 PRs Q3→Q4→Q1. Widest repo footprint (18+). Strong Q2 candidate for platform ownership.
-- **Signal:** GSOIT-6378 in Review — high-value endpoint for post-refund recommendations. GSOIT-6362 Reopened.
-- **Note:** Building AI agent for cs-api (GSOIT-6332 completed QA last week). Active on Unified Customer Profile hackathon (GSOIT-6395).
+- **Watch:** GSOIT-6378 blocked on RAPI team creating client ID for cs-api — escalating to Dennis Bertelkamp. Written dependency summary from Ravindra needed by Monday noon IST. This is priority #1 — everything else secondary until unblocked.
 
 ---
 
 ## Key Stakeholders
 
-| Name | Role | Primary interaction |
-|------|------|-------------------|
-| Dennis Bertelkamp | Product Owner (SP) | GSOIT services — primary PO |
+| Name | Role | Notes |
+|------|------|-------|
+| Josef Sima | EM Manager | 5/15 recipient · AI Showcase Apr 29 |
+| Dennis Bertelkamp | Product Owner (SP) | GSOIT primary PO · Escalation: GSOIT-6378 RAPI unblock |
 | Michal Jilka | Product Owner (SP) | Cyclops, CS-Token, Unified Customer Profile |
 | Chris Hill | RevOps Lead | SFDC requirements, Opportunity governance |
 | Maciej Kołodziej | Sales Ops | Opportunity & Lead process owner |
-| Veronika Zapletalova | Merchant Support Lead | Merchant-facing processes |
 | Samuel Garcia Rio | Customer Support Lead | Service Cloud, Case escalations |
 | Zeph Buck | CommOps | Commercial Operations |
 | Dilpreet Dhaliwal | Cross-functional | AI automation testing — SF field reports, Cyclops/BigQuery |
+| Kateryna Usova | Bloomreach PM | BR↔SF email deliverability CSV spec pending — blocks GSOIT-6429 |
+| Keith Hayden | Data/Analytics | Core deal tables for BR business metrics feed |
+| Tomas Zaruba | Bloomreach Eng | Out ~2 weeks from Apr 21. MC go-live covered Monday. |
+| Lukas Benes | Merchant Lifecycle DRI | Out ~2 weeks from Apr 21. Checking in occasionally. |
 
 ---
 
-## Current Sprint Snapshot (Q2 Sprint 2)
+## Active BETs
 
-**SFDC:** Apr 23 – May 6 · **GSOIT:** Apr 23 – May 6
-> Last updated: Apr 23, 2026. Live Jira data not pulled (Atlassian MCP OAuth needs refresh — run `/mcp` to reconnect, then ask "update sprint snapshot").
-
-### Carry-over watch items (from Q2 Sprint 1 — confirm status in new sprint)
-- `SFDC-9169` Kumar — cross-reference validation — was Blocked, confirm if resolved or carried over
-- `GSOIT-6369` Datta — Cyclops latency spike — was In Progress, **do not clear until root cause confirmed**
-- `GSOIT-6391` Rakesh — merchant case creation endpoint — was Reopened
-- `GSOIT-6362` Ravindra — Email Dashboard tab — was Reopened
-
-### Q2 Sprint 1 notable completions (verify Done status)
-- `SFDC-10103 + 10055` Niveditha — INTL CDAs reached QA
-- `SFDC-10201` Nirajkumar — Claude + CI/CD automation was In Review
-- `SFDC-10161` Ankur — Salesforce MCP Setup was In Review
-- `GSOIT-6332` Ravindra — AI agent for cs-api was in QA
-- `GSOIT-6385 + 6379` Rakesh — typo fix + AI Case Format Fix were Deploy-ready
-
-### AI workstreams — carry into Sprint 2
-- `SFDC-10144` Ashwinkrishna — Salesforce-genie (was In Progress)
-- `SFDC-10161` Ankur — SF MCP Setup (was In Review — highest priority for L6 unlock)
-- `SFDC-10201` Nirajkumar — Claude + CI/CD automation (was In Review)
-- `GSOIT-6331` Ravi — Dynamic SF Fetch endpoint (was In Progress)
-- `GSOIT-6395` Michal/team — Unified Customer Profile hackathon (was In Progress)
+| BET | Jira | Status | Progress | Top risk |
+|-----|------|--------|----------|----------|
+| Margin Control | QR-1624 | 🟢 | 70% | SFDC-9974 OCR UAT carry-over |
+| SF Cleanup & Optimization | QR-1612 | 🟡 | 40% | XFiles Pro vendor + Apex job limit at 96/100 |
+| Customer AI Agent | QR-1614 | 🟢 | 55% | Sprint overload — Rakesh top-3 needed |
+| Merchant Lifecycle Engine | QR-1631 | 🟡 | 30% | GSOIT-6378 blocked on RAPI team |
+| PoF Ingresso INTL | QR-1658 | 🟢 | 45% | Finance/FinSys resourcing (not Eng) |
 
 ---
 
-## Assignment patterns
+## Team AI Maturity Baseline — Q2 Sprint 2 (Apr 24, 2026)
 
-- **High-complexity Apex + integrations:** Niveditha, Ashwinkrishna, Nirajkumar
-- **Sales Cloud / Account objects:** Kumar Ankit, Amit Patil
-- **Service Cloud / Cases:** Niveditha, Srilakshmi
-- **Admin + deployments:** Utkarsh, Srilakshmi
-- **GSOIT backend (cs-api, refunds, chatbot):** Rakesh, Ravindra
-- **GSOIT data pipelines + ETL:** Datta
-- **GSOIT frontend + mobile:** Ravi Kumar
-- **AI workstreams:** Ashwinkrishna, Nirajkumar, Ravi Kumar, Ravindra
+| Engineer | Level | Key evidence |
+|----------|-------|--------------|
+| Nirajkumar | L4→L5 | Pre-PR skill chain + sf-pr-creation agent, ~50% spike time reduction |
+| Ravi Kumar | L4→L5 | Opus multi-pass review, 5 AI task types, incident AI investigation |
+| Ashwinkrishna | L3 | SF MCP setup, Claude Code prototyping |
+| Datta | L3 | Playwright automation for incident investigation |
+| Amit | L2→L3 | Claude end-to-end Apex development |
+| Utkarsh | L2→L3 | Full Apex solution built with Claude |
+| Niveditha | L2 | Claude for analysis + export |
+| Rakesh | L2 | Chatbot backend work |
+| Ravindra | L2 | Daily AI usage improving |
+
+Target: nobody below L3 by end of Q2 2026.
+
+---
+
+## Team Process — Active from Q2 Sprint 2
+
+- **Weekly AI usage log:** All engineers log one AI interaction per week in team meta-repo
+- **Opus pre-PR review:** Mandatory for retry/backoff/circuit-breaker/timeout code
+- **Quality Hour:** Wednesday 10:00–11:00 IST fixed — no feature work
+- **5/15 standards:** Suggestions mandatory · AI Signal = ticket + outcome + time saved · Priorities = 3 ticket keys
+- **Automated memos + emails:** Amit + Nirajkumar sharing pattern — one shared skill target
+
+---
+
+## Bloomreach Stream Notes (QR-1631)
+
+- MC↔SF contacts sync: deploying to production Monday Apr 28 (Ankur driving)
+- CDP email proxy: tested, working, placeholder for missing merchant UUIDs agreed
+- SMS proxy: under development B2C side — last prereq before production data
+- BR→SF email deliverability webhook: POC done (Datta/GSOIT-6429), pending Kateryna's CSV spec
+- Contact router architecture: final round with Bloomreach team needed
+- Business metrics feed: using Keith's existing core deal tables (not new pipelines)
+- Lukas + Tomas out ~2 weeks from Apr 21

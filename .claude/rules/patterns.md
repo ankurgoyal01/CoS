@@ -1,292 +1,254 @@
-# patterns.md — Code Patterns, Org Quirks & Recurring Issues
-> Read when doing code review, writing code, or debugging recurring problems.
-> Last updated: April 17, 2026
+# patterns.md — Code & Engineering Patterns
+> Read when doing code review, writing code, or advising on implementation.
+> Last updated: April 24, 2026
 
 ---
 
-## SFDC — Apex Patterns
+## SFDC Apex Patterns
 
-### Trigger handler pattern (mandatory)
+### Apex trigger pattern (mandatory)
 ```apex
-// Trigger — zero logic, just routes to handler
+// One trigger per object — zero logic in trigger body
 trigger OpportunityTrigger on Opportunity (before insert, before update, after insert, after update) {
-    OpportunityTriggerHandler handler = new OpportunityTriggerHandler();
-    if (Trigger.isBefore) {
-        if (Trigger.isInsert) handler.onBeforeInsert(Trigger.new);
-        if (Trigger.isUpdate) handler.onBeforeUpdate(Trigger.new, Trigger.oldMap);
-    }
-    if (Trigger.isAfter) {
-        if (Trigger.isInsert) handler.onAfterInsert(Trigger.new);
-        if (Trigger.isUpdate) handler.onAfterUpdate(Trigger.new, Trigger.oldMap);
-    }
+    OpportunityTriggerHandler.handleTrigger(Trigger.new, Trigger.old, Trigger.operationType);
 }
 
-// Handler class — all logic here
+// All logic in handler class
 public class OpportunityTriggerHandler {
-    public void onBeforeInsert(List<Opportunity> newList) {
-        // bulk-safe logic only
+    public static void handleTrigger(List<Opportunity> newRecords, List<Opportunity> oldRecords, TriggerOperation operation) {
+        // Business logic here
     }
 }
 ```
 
-### Bulkification pattern (mandatory)
+### Bulkification (mandatory)
 ```apex
-// WRONG — SOQL in loop
-for (Account acc : accounts) {
-    List<Contact> contacts = [SELECT Id FROM Contact WHERE AccountId = :acc.Id];
+// NEVER do this — SOQL in loop = governor limit failure
+for (Opportunity opp : opportunities) {
+    Account acc = [SELECT Id FROM Account WHERE Id = :opp.AccountId]; // WRONG
 }
 
-// CORRECT — bulk query, map lookup
-Map<Id, List<Contact>> contactsByAccount = new Map<Id, List<Contact>>();
-for (Contact c : [SELECT Id, AccountId FROM Contact WHERE AccountId IN :accountIds]) {
-    if (!contactsByAccount.containsKey(c.AccountId)) {
-        contactsByAccount.put(c.AccountId, new List<Contact>());
-    }
-    contactsByAccount.get(c.AccountId).add(c);
+// ALWAYS do this — collect IDs, query once
+Set<Id> accountIds = new Set<Id>();
+for (Opportunity opp : opportunities) {
+    accountIds.add(opp.AccountId);
 }
+Map<Id, Account> accountMap = new Map<Id, Account>([SELECT Id, Name FROM Account WHERE Id IN :accountIds]);
 ```
 
-### Named Credential callout pattern (mandatory for all integrations)
+### TestDataFactory pattern
 ```apex
-HttpRequest req = new HttpRequest();
-req.setEndpoint('callout:DealEstateAPI/v1/cda-import');  // Named Credential
-req.setMethod('POST');
-req.setHeader('Content-Type', 'application/json');
-req.setBody(JSON.serialize(payload));
-
-Http http = new Http();
-HttpResponse res = http.send(req);
-if (res.getStatusCode() != 200) {
-    throw new CalloutException('Deal Estate API error: ' + res.getBody());
-}
-```
-
-### Async callout pattern (use for Deal Estate, Merchant Center integrations)
-```apex
-// Queueable for async REST callouts
-public class CDADealEstateQueueable implements Queueable, Database.AllowsCallouts {
-    private List<CDA__c> cdaList;
-
-    public CDADealEstateQueueable(List<CDA__c> cdas) {
-        this.cdaList = cdas;
-    }
-
-    public void execute(QueueableContext ctx) {
-        CDADealEstateService.importToDealer(cdaList);
-    }
-}
-// Enqueue from trigger handler:
-System.enqueueJob(new CDADealEstateQueueable(cdaList));
-```
-
-### Test class pattern (85%+ coverage, meaningful assertions)
-```apex
+// Always use TestDataFactory — no hardcoded IDs, no hardcoded names
 @isTest
-private class OpportunityTriggerHandlerTest {
+public class OpportunityTriggerHandlerTest {
     @TestSetup
     static void setup() {
         Account acc = TestDataFactory.createAccount('Test Account');
         insert acc;
+        Opportunity opp = TestDataFactory.createOpportunity(acc.Id, 'Test Opp', 'Prospecting');
+        insert opp;
     }
 
     @isTest
-    static void testOnBeforeInsert_setsDefaultValues() {
-        Account acc = [SELECT Id FROM Account LIMIT 1];
-        Test.startTest();
-        Opportunity opp = TestDataFactory.createOpportunity(acc.Id, 'Test Opp');
-        insert opp;
-        Test.stopTest();
-
-        Opportunity result = [SELECT StageName FROM Opportunity WHERE Id = :opp.Id];
-        System.assertEquals('Prospecting', result.StageName, 'Stage should default to Prospecting');
+    static void testHandleTrigger() {
+        Opportunity opp = [SELECT Id, StageName FROM Opportunity LIMIT 1];
+        // Test meaningful business logic, not just coverage
+        System.assertEquals('Prospecting', opp.StageName, 'Stage should be Prospecting');
     }
 }
-// Rules: TestDataFactory always, no hardcoded IDs, Test.startTest/stopTest wraps DML, meaningful assertEquals
+// Target: 85%+ coverage with meaningful assertions
+```
+
+### Named Credential for callouts
+```apex
+// ALWAYS use Named Credentials — never hardcode endpoints or credentials
+HttpRequest req = new HttpRequest();
+req.setEndpoint('callout:MerchantCenter_API/v1/merchants');
+req.setMethod('GET');
+Http http = new Http();
+HttpResponse res = http.send(req);
 ```
 
 ---
 
-## SFDC — Recurring Issues & Quirks
+## GSOIT Service Patterns
 
-### INTL CDA blocker pattern
-- **Issue:** INTL Sales Reps cannot add CDAs to live Opportunities. Recurs because of three separate dependencies: (1) Region/Deal_Type__c picklist values not extended for INTL, (2) AdobeSign template not uploaded for INTL regions, (3) Deal Estate API availability for INTL not confirmed.
-- **Resolution path:** Confirm AdobeSign template with Carmen Meyer/Richard Jenner → extend picklist values in Staging → test Deal Estate callout with INTL endpoint → UAT in QA sandbox with INTL Sales Rep profile.
-- **Tickets:** SFDC-10055, SFDC-10103 (now in QA Apr 16)
-- **Owner:** Niveditha
-
-### Dynamic Layout UAT — reopening pattern
-- **Issue:** Dynamic Layout features pass initial QA but get reopened during production UAT due to profile/record type visibility edge cases.
-- **Pattern:** Always test against INTL Sales Rep profile + all record types in QA, not just the primary profile.
-- **Ticket:** SFDC-10157
-
-### Managed package field conflicts
-- **Issue:** Attempting to modify Unbabel translation fields, AdobeSign signature fields, or Conga template fields causes deployment errors. These are managed package components.
-- **Check:** Before any metadata deployment, verify the component is not owned by Unbabel, AdobeSign, Conga, XFiles Pro, or Data Connectiva.
-- **How to check:** In Salesforce Setup → Package Manager → view installed packages → compare namespace prefixes.
-
-### Flow + Apex on same object — governor limit double-counting
-- **Issue:** When both a Flow and an Apex trigger fire on the same event for Opportunity, SOQL/DML limits are consumed twice — often hits limits in bulk operations.
-- **Resolution:** Always check if a Flow already handles the same event before adding Apex logic. Pick one, not both.
-
-### Account cross-reference validation errors (SFDC-9169 pattern)
-- **Issue:** Moving accounts or reassigning ownership fails with cross-reference validation errors when sharing rules reference the old owner's role/territory.
-- **Resolution path:** Identify sharing rules referencing old owner → update or deactivate before reassignment → use Account Skew cleanup ticket to prevent recurrence.
-- **Current ticket:** SFDC-9169 (blocked, Kumar Ankit)
-
----
-
-## GSOIT — Service Patterns
-
-### JTier service pattern (Java 11, Maven 3.5.4)
+### JTier (Java 11, Maven 3.5.4)
 ```java
-// Standard JTier controller pattern
-@RestController
-@RequestMapping("/api/v1")
-public class CsApiController {
+// PMD static analysis — 0 failures target
+// Spotbugs — track quarterly, trend downward
+// Standard JTier 5.14.x patterns apply
 
-    @Autowired
-    private CsApiService csApiService;
-
-    @GetMapping("/recommendations/{orderId}")
-    public ResponseEntity<RecommendationResponse> getRecommendations(
-            @PathVariable String orderId) {
-        try {
-            RecommendationResponse response = csApiService.getRecommendations(orderId);
-            return ResponseEntity.ok(response);
-        } catch (NotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-}
-// PMD static analysis: 0 failures target
-// Spotbugs: track quarterly, trend downward
+// No N+1 queries — batch all DB calls
+// Spring dependency injection — no static singletons
+// All external calls: circuit breaker + timeout configured
 ```
 
-### Ruby on Rails pattern (Cyclops/CS-Token — multi-version aware)
+### Ruby services
 ```ruby
-# Check Ruby version first: cat .ruby-version or check Gemfile
-# Rubocop: 0 failures target
-# Cyclops: Ruby 2.2.2 — avoid modern Ruby syntax (safe navigation &., pattern matching)
-# CS-Token: Ruby 2.6.3 — safe navigation OK
+# Rubocop — 0 failures target
+# Do NOT assume a single Ruby version across services — check service README first
+# Webbus: Ruby 1.9.3 (EOL) — ANY change = escalate to EM before touching
+# Cyclops: Ruby on Rails 3.2, Ruby 2.2.2 — no schema changes during latency investigation
 
-# Standard Cyclops controller pattern
-class Cyclops::RefundController < ApplicationController
-  before_action :authenticate_user!
-
-  def process
-    result = RefundService.new(params[:order_id]).call
-    render json: result, status: :ok
-  rescue RefundService::Error => e
-    render json: { error: e.message }, status: :unprocessable_entity
-  end
+# Standard pattern: rescue specific exceptions, not bare rescue
+begin
+  result = service_call
+rescue ServiceError => e
+  logger.error("Service call failed: #{e.message}")
+  raise
 end
 ```
 
-### Airflow DAG pattern (SFDC-ETL — Shared Composer)
-```python
-# SFDC-ETL uses Shared Composer — coordinate with data team before changes
-# No Sonar — manual review required on ALL PRs
+### iTier (Node.js)
+```javascript
+// ESLint — 0 errors target, trend warnings down
+// Node version varies 12–16 — always check service README before assuming
+// Pizza NG: Node 12, Deal Panel: Node 14, Transporter-Itier: Node 16
 
+// Standard error handling
+async function callService(params) {
+  try {
+    const result = await serviceClient.call(params);
+    return result;
+  } catch (error) {
+    logger.error({ error, params }, 'Service call failed');
+    throw error;
+  }
+}
+```
+
+### Python (SFDC-ETL, RPA)
+```python
+# No Sonar — manual review required on all PRs
+# SFDC-ETL: Airflow DAGs on Shared Composer — coordinate with Dilpreet before changes
+# RPA: GCP VM, manual deployment — Deploybot not available
+
+# Standard Airflow DAG pattern
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
 default_args = {
-    'owner': 'sfdc-team',
-    'depends_on_past': False,
-    'retries': 2,
+    'retries': 3,
     'retry_delay': timedelta(minutes=5),
-    'email_on_failure': True,
-    'email': ['agoyal@groupon.com']
+    'on_failure_callback': alert_on_failure
 }
-
-dag = DAG(
-    'sfdc_to_bigquery_sync',
-    default_args=default_args,
-    schedule_interval='0 2 * * *',  # 2 AM UTC daily
-    catchup=False,
-)
-# ALWAYS add email_on_failure — ETL failure = data warehouse gap (P1)
 ```
-
-### Cross-team PR review checklist
-Before approving any PR that touches shared infrastructure:
-1. Linked Jira ticket (SFDC-xxx or GSOIT-xxx)?
-2. SOQL/DML in loops? (Apex) · N+1 queries? (Ruby/Java)?
-3. Coverage meaningful, not padded?
-4. `// WHY` comment on non-obvious logic?
-5. Touches Opportunity, Account, Cyclops, or Salesforce-Cache? → extra review cycle
-6. Rollback plan documented?
-7. Grafana alerts updated if new metrics added? (GSOIT)
-8. Managed package component? → reject if so
 
 ---
 
-## GSOIT — Recurring Issues & Quirks
+## High-Risk Code Patterns Requiring AI Pre-Review
 
-### Cyclops latency investigation (active Q2 Sprint 1)
-- **Issue:** Cyclops experiencing intermittent latency spikes. Root cause under investigation by Datta (GSOIT-6369).
-- **Pattern:** Likely related to MySQL DAAS query performance or Redis RAAS cache miss patterns. Not confirmed yet.
-- **Rule:** No Cyclops schema or API changes until GSOIT-6369 is resolved. Any Cyclops-related PR must be reviewed by Datta.
-- **Check before merging any Cyclops PR:** Is GSOIT-6369 still open? If yes, defer schema/API changes.
+### ⚠️ Retry / Backoff / Circuit Breaker — Opus multi-pass mandatory
+**Added:** April 24, 2026 — Ravi Kumar finding on Lazlo retry (GSOIT-6291)
 
-### E-Gift Card redemption inconsistency pattern
-- **Issue:** E-Gift card redemption shows inconsistent details to recipients (GSOIT-6223). Recurring across multiple sprints.
-- **Root cause:** Race condition between gift card service state update and Cyclops data cache refresh.
-- **Mitigation:** Always test gift flow end-to-end in staging with a cold cache before merging Cyclops gift-related changes.
+Any code touching retry logic, backoff algorithms, circuit breakers, or timeout configuration **must** go through Opus multi-pass review before PR creation. Run Claude Opus on the diff specifically asking it to look for:
+- Jitter asymmetry (one-sided jitter that doesn't actually randomise)
+- Null-guards on config parameters (missing null-guard on delay arrays = NPE at runtime)
+- Missing terminal log on exhaustion (no log when all retries fail = silent failure, undiagnosable in production)
+- Off-by-one in retry count
+- Exception handling that swallows errors silently
 
-### SSR (Self-Service Refund) mass refund automation
-- **Pattern:** INTL mass refund automation failures occur when the auto-refund trigger doesn't fire after 14 days due to missing SSR eligibility fields in custom-data.
-- **Required fields:** `ssr_enabled`, `refund_destination` must be present in inventory unit custom-data.
-- **Ticket:** GSOIT-6356 (Rakesh, In Progress), GSOIT-6388 (monitoring + alerts)
+**Evidence:** Opus caught 3 pre-PR bugs on the Lazlo retry implementation (GSOIT-6291) that human review missed — jitter asymmetry, null-guard on `delays`, no terminal log on exhaustion. These are the failure modes that cause production incidents at 3 AM.
 
-### GSOIT-ETL BigQuery sync gap detection
-- **Pattern:** SFDC-ETL Airflow DAG failures don't always surface in alerting immediately. Check BigQuery table freshness if Salesforce reporting looks stale.
-- **Check:** `SELECT MAX(updated_at) FROM sfdc_opportunities` in BigQuery — if >24h stale, check Airflow DAG status.
-- **Owner:** Datta Maddala
+```javascript
+// Example: what Opus caught on Lazlo retry
+// BUG 1 — jitter asymmetry: should be ±20%, was +20% only
+const jitter = Math.random() * 0.2; // WRONG — always adds, never subtracts
+const jitter = (Math.random() - 0.5) * 0.4; // CORRECT — ±20%
 
-### Branch name lookup before checkout
-- **Pattern:** GSOIT services don't use a consistent default branch name. Always check the service README before `git checkout`.
-  - Most services: `main`
-  - Some legacy: `master`
-  - SFDC-ETL, some others: `develop`
-- **Risk services with unprotected branches:** Deal Panel, Webbus, Salesforce-Cache, Transporter-Jtier, Transporter-Itier, SFDC-ETL, Salesforce-Metrics
+// BUG 2 — null-guard missing
+const delay = delays[attempt]; // WRONG — crashes if delays is null/undefined
+const delay = (delays ?? [500, 1000, 2000])[attempt]; // CORRECT
+
+// BUG 3 — no terminal log
+if (attempt === maxRetries) {
+    throw error; // WRONG — silent failure in logs
+}
+if (attempt === maxRetries) {
+    logger.error({ error, attempt }, 'All retries exhausted'); // CORRECT
+    throw error;
+}
+```
+
+### ⚠️ Cyclops / cs-api changes — extra review
+- No schema changes during active latency investigation (GSOIT-6369/6427 — see D-014)
+- Any endpoint modification: check Dilpreet's AI reporting pipeline dependencies first
+- minReplicas floor is now 3 — do not reduce without EM approval
+
+### ⚠️ Salesforce Opportunity / Account at scale
+- Always check: is there a Flow already running on this object + event? Check for conflicts before adding Apex.
+- Bulk operations: test with 200-record DataFactory, not single records
+- Page load: any field add to Account/Opportunity layout must be justified — page load baseline is 5.8s (target ≤2.5s)
 
 ---
 
-## AI tooling patterns (personal workflow)
+## Cross-Team PR Review Checklist
 
-### standup.sh invocation pattern
-```bash
-# Headless standup brief — runs Jira + Gmail + GCal via Claude Code MCP
-# Asana fetched via direct REST (PAT), not MCP
-# Cron: 0 4 * * 1-5 (9:30 AM IST)
-~/standup.sh
-```
+Before approving any PR:
+1. **Jira linked?** — SFDC-xxx or GSOIT-xxx in PR description. (Jira Linkage target: 90%+)
+2. **SOQL/DML in loops?** (Apex) · **N+1 queries?** (Ruby/Java)
+3. **Coverage meaningful, not padded?** — assertions verify logic, not just line hits
+4. **`// WHY` comment on non-obvious logic?**
+5. **High-criticality surface?** — Opportunity, Account, Cyclops, Salesforce-Cache → extra review required
+6. **Rollback plan documented?** (required for Opp/Account/Case triggers, integrations)
+7. **Grafana alerts updated?** — if new metrics added (GSOIT services)
+8. **Retry/backoff/circuit-breaker code?** → Opus multi-pass before PR (see above)
+9. **New Scheduled Apex job?** → Check current count (96/100 limit) — do not add without cleanup first
 
-### weekly-report.sh invocation pattern
-```bash
-# 8-week GitHub performance PDF — runs every Monday 12:00 noon IST
-# GitHub API: github.groupondev.com/api/v3 (Enterprise)
-# Orgs: sox-inscope, salesforce
-# Token: from github.groupondev.com/settings/tokens (NOT github.com)
-# Cron: 30 6 * * 1 (6:30 AM UTC = 12:00 noon IST)
-~/weekly-report.sh
-```
+---
 
-### Claude Code MCP config location
-```bash
-~/.claude/settings.json   # MCP servers: atlassian, gcal, gmail, asana
-~/.claude/CLAUDE.md       # Session context — team, sprint, decisions
-~/standup.sh              # Daily headless standup
-~/weekly-report.sh        # Weekly GitHub PDF report
-~/standup-logs/           # All output logs and PDFs
-```
+## AI-Assisted Development Patterns
 
-### Asana task creation pattern (from scripts)
-```python
-# Always use multipart/form-data for PDF attachments
-# Always use os.environ.get() for tokens — never bash heredoc interpolation
-# Workspace GID: 8437193015852
-# Assignee GID: 1211542692184092
-```
+### Spec quality before delegation
+- Vague spec → poor-quality AI output → rework. Write spec first, delegate second.
+- CLAUDE.md / AGENTS.md must reflect current system state before any agentic run.
+- For Salesforce: include object names, field names, expected behaviour, edge cases in spec.
+
+### Claude orchestration pattern (Nirajkumar's setup)
+- **sf-project-planner skill** → complex analysis spikes: ~50% time reduction documented
+- **Pre-PR code review skill** → pre-flight before sf-pr-creation agent fires
+- **Pattern:** Spike with planner → TDD review → pre-PR review → sf-pr-creation agent → human review
+- **Result:** Catches issues before PR creation, not during review
+
+### Playwright for data collection during incidents
+- **Pattern (Datta, Apr 2026):** Use Playwright to automate gathering audit records / log data from internal tools during active incident investigation
+- **Benefit:** Reduces investigation time from hours to minutes for structured data extraction
+- **Explore:** Playwright Chrome session reuse for MCP without separate Okta authentication (Datta + Ashwinkrishna prototyping Q2 Sprint 2)
+
+### TDD agent pattern
+- **Watcher:** polls every 4 hours, state file deduplication, parallel specialist spawning
+- **Specialist:** reads desc + last 5 comments, Claude generates TDD JSON, validates 8 quality checks, retries up to 3× with failure reason fed back into next prompt, attaches .docx to Jira, sets estimate, saves to KB
+- **Knowledge base:** past successful TDDs used as few-shot context — improves estimates over time
+- **Failure handling:** posts Jira comment with actual reason + action required if all retries fail
+
+### Weekly AI usage tracking (from Q2 Sprint 2)
+- All engineers log one AI interaction per week in team meta-repository
+- Format: what was delegated, what was fixed, what worked
+- Purpose: maturity tracking + YEPR evidence + team knowledge base
+
+---
+
+## Org Quirks & Watch-outs
+
+### SFDC
+- **Apex job limit:** 96/100 (critical). No new jobs until cleanup reduces below 75 (BET QR-1612).
+- **Field limits:** Account 728, Opportunity 729 (hard limit 800). Any new field = justify and check limits first.
+- **XFiles Pro:** Vendor connection error Apr 2026. Archival jobs blocked until vendor fixes. Do not attempt manual file deletion.
+- **AdobeSign templates:** INTL CDA changes always require AdobeSign template alignment — high-risk for stakeholder delays.
+- **ContentOps dependency:** OCR for ContentOps (SFDC-9974) has recurring UAT delay pattern — always set written deadline with stakeholder.
+
+### GSOIT
+- **Webbus:** Ruby 1.9.3 = EOL 2015. ANY change = escalate to EM. Non-negotiable.
+- **cs-api:** minReplicas = 3 (post Apr 22 incident). Latency investigation ongoing (GSOIT-6427).
+- **Salesforce-Cache:** Bridge service — downtime affects both teams simultaneously. Coordinate always.
+- **SFDC-ETL:** Airflow DAG failure = data warehouse gap + Dilpreet's AI pipelines break. Coordinate before any changes.
+- **RPA:** GCP VM, Python, manual deployment — Deploybot not available.
+- **Unprotected branches:** Deal Panel, Webbus, Salesforce-Cache, Transporter-Jtier/Itier, SFDC-ETL, Salesforce-Metrics — always check README for branch naming.
+
+### Bloomreach (QR-1631)
+- Contact router: priority logic on Groupon side, exposed to BR as priority flag 1/2/3 via daily import
+- Missing merchant UUID: use placeholder, do not fail the send
+- Business metrics: Keith's core deal tables, not new pipelines
+- Email deliverability webhook: BR→SF — pending Kateryna's CSV spec before Datta can build (GSOIT-6429)
