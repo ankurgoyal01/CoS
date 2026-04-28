@@ -21,7 +21,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SPECIALIST="$SCRIPT_DIR/tdd-specialist.sh"
 LOG_DIR="$HOME/CoS/logs/tdd"
 STATE_FILE="$LOG_DIR/.tdd-state.json"
-TIMESTAMP=$(TZ="Asia/Kolkata" date +"%Y-%m-%dT%H:%M:%S IST" 2>/dev/null || date -u +"%Y-%m-%dT%H:%M:%S UTC")
+TIMESTAMP=$(TZ="Asia/Kolkata" date +"%Y-%m-%dT%H:%M:%S IST")
 
 mkdir -p "$LOG_DIR"
 
@@ -47,7 +47,7 @@ CURRENT_TICKETS=$(curl -s \
   -u "$ATLASSIAN_EMAIL:$ATLASSIAN_TOKEN" \
   -X POST \
   -H "Content-Type: application/json" \
-  -d "{\"jql\":\"project = $JIRA_PROJECT AND status = \"To Do\" AND $JIRA_SPRINT_FIELD = \\\"$JIRA_SPRINT_NAME\\\"\",\"maxResults\":50,\"fields\":[\"summary\",\"description\",\"comment\",\"priority\",\"issuetype\",\"created\"]}" \
+  -d "{\"jql\":\"project = $JIRA_PROJECT AND $JIRA_SPRINT_FIELD = \\\"$JIRA_SPRINT_NAME\\\" AND status = \\\"To Do\\\"\",\"maxResults\":50,\"fields\":[\"summary\",\"description\",\"comment\",\"priority\",\"issuetype\",\"created\"]}" \
   "$JIRA_BASE/rest/api/3/search/jql")
 
 # Check for API error
@@ -102,30 +102,36 @@ for i in issues:
         if text.strip():
             comments.append(f'{author}: {text.strip()[:300]}')
 
+    import re
+    def clean(s):
+        s = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', ' ', str(s))
+        s = s.replace('\n',' ').replace('\r',' ').replace('\t',' ')
+        return ' '.join(s.split())
+
     result.append({
         'key':      i['key'],
-        'summary':  f['summary'],
+        'summary':  clean(f['summary']),
         'priority': f.get('priority',{}).get('name','Medium'),
         'type':     f.get('issuetype',{}).get('name','Task'),
-        'desc':     desc.strip()[:2000],
-        'comments': comments,
+        'desc':     clean(desc.strip())[:2000],
+        'comments': [clean(c) for c in comments],
         'created':  f.get('created',''),
     })
 
-print(json.dumps(result))
+print(json.dumps(result, ensure_ascii=False))
 ")
 
 # ── Diff against state file — find NEW tickets only ───────────────────────────
-NEW_TICKETS=$(printf '%s' "$PARSED_TICKETS" | python3 -c "
-import json
-import sys
+NEW_TICKETS=$(echo "$PARSED_TICKETS" | python3 -c "
+import json, sys
 
-with open('$STATE_FILE') as f:
+state_file = '$STATE_FILE'
+with open(state_file) as f:
     state = json.load(f)
 
 processed = set(state.get('processed', {}).keys())
-tickets = json.load(sys.stdin)
-new_ones = [t for t in tickets if t['key'] not in processed]
+tickets   = json.loads(sys.stdin.read())
+new_ones  = [t for t in tickets if t['key'] not in processed]
 print(json.dumps(new_ones))
 ")
 
@@ -214,8 +220,8 @@ with open("$STATE_FILE") as f:
     state = json.load(f)
 
 processed = state.get("processed", {})
-done_keys   = [k for k in "${DONE[@]}".split() if k]
-failed_keys = [k for k in "${FAILED[@]}".split() if k]
+done_keys   = [k for k in "${DONE[@]+"${DONE[@]}"}".split() if k]
+failed_keys = [k for k in "${FAILED[@]+"${FAILED[@]}"}".split() if k]
 
 for key in done_keys:
     processed[key] = {"processed_at": "$TIMESTAMP", "status": "done"}
@@ -227,4 +233,4 @@ with open("$STATE_FILE", "w") as f:
     json.dump(state, f, indent=2)
 PYEOF
 
-echo "[$TIMESTAMP] Done — ${#DONE[@]} succeeded, ${#FAILED[@]} failed"
+echo "[$TIMESTAMP] Done — ${#DONE[@]} succeeded, ${#FAILED[@]:-0} failed"
