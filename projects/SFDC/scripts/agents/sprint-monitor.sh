@@ -51,12 +51,7 @@ CURRENT_RAW=$(curl -s \
   -u "$ATLASSIAN_EMAIL:$ATLASSIAN_TOKEN" \
   -X POST \
   -H "Content-Type: application/json" \
-  -d '{
-    "jql": "project in (SFDC, GSOIT) AND sprint in openSprints() AND status in (Blocked, Reopened) ORDER BY priority ASC, project ASC",
-    "maxResults": 50,
-    "fields": ["summary", "status", "assignee", "priority", "project", "updated", "comment"],
-    "expand": ["changelog"]
-  }' \
+  -d '{"jql":"project in (SFDC, GSOIT) AND sprint in openSprints() AND status in (Blocked, Reopened) ORDER BY priority ASC, project ASC","maxResults":50,"fields":["summary","status","assignee","priority","project","updated","comment"]}' \
   "$JIRA_BASE/rest/api/3/search/jql")
 
 # Check for API errors
@@ -100,32 +95,26 @@ for i in issues:
         text   = re.sub(r'[\x00-\x1f\x7f]', ' ', text).strip()[:200]
         last_comment = f'{author}: {text}' if text else ''
 
-    # Find when ticket entered Blocked/Reopened status via changelog
-    blocked_since = None
+    # Use the updated field as proxy for when status last changed
+    # Jira updates this timestamp on status transitions
     current_status = f['status']['name']
-    changelog = i.get('changelog', {}).get('histories', [])
-    # Walk changelog newest→oldest, find last transition INTO blocked/reopened
-    for history in reversed(changelog):
-        for item in history.get('items', []):
-            if item.get('field') == 'status' and item.get('toString') in ('Blocked', 'Reopened'):
-                blocked_since = history.get('created', '')
-                break
-        if blocked_since:
-            break
+    blocked_since  = f.get('updated', '')[:16].replace('T', ' ')
 
-    # Calculate hours in blocked status
+    # Calculate hours since last update (proxy for time in blocked status)
     hours_blocked = 0
-    if blocked_since:
-        try:
-            from datetime import timezone
-            ts = datetime.fromisoformat(blocked_since.replace('Z', '+00:00'))
+    try:
+        from datetime import timezone
+        raw = f.get('updated', '')
+        if raw:
+            ts = datetime.fromisoformat(raw.replace('Z', '+00:00'))
             now_utc = datetime.now(timezone.utc)
             hours_blocked = (now_utc - ts).total_seconds() / 3600
-        except:
-            hours_blocked = 0
+    except:
+        hours_blocked = 999  # unknown — include it
 
-    # Only include tickets blocked for more than 12 hours
-    if hours_blocked < 12 and blocked_since:
+    # Only include tickets updated more than 12 hours ago
+    # (ticket that just became blocked will have a recent updated timestamp)
+    if hours_blocked < 12:
         continue  # Too new — skip, will be picked up in next 12h run
 
     result.append({
