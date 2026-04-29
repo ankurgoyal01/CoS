@@ -392,7 +392,7 @@ if echo "$RESPONSE" | grep -q "^TASK_GID="; then
   {
     echo ""
     echo "---"
-    echo "_Asana task created: $TASK_NAME · $TASK_URL_"
+    echo "_Asana task created: $TASK_NAME · $TASK_URL"
   } >> "$OUTPUT_FILE"
 else
   echo "WARNING: Asana task creation failed."
