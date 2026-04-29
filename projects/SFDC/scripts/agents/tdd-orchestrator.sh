@@ -21,8 +21,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SPECIALIST="$SCRIPT_DIR/tdd-specialist.sh"
 LOG_DIR="$HOME/CoS/logs/tdd"
 STATE_FILE="$LOG_DIR/.tdd-state.json"
-DATE=$(TZ="Asia/Kolkata" date +"%Y-%m-%d" 2>/dev/null || date -u +"%Y-%m-%d")
-TIMESTAMP=$(TZ="Asia/Kolkata" date +"%Y-%m-%dT%H:%M:%S IST" 2>/dev/null || date -u +"%Y-%m-%dT%H:%M:%S UTC")
+DATE=$(TZ="Asia/Kolkata" date +"%Y-%m-%d")
+TIMESTAMP=$(TZ="Asia/Kolkata" date +"%Y-%m-%dT%H:%M:%S IST")
 
 mkdir -p "$LOG_DIR"
 
@@ -52,7 +52,7 @@ RAW=$(curl -s \
   -u "$ATLASSIAN_EMAIL:$ATLASSIAN_TOKEN" \
   -X POST \
   -H "Content-Type: application/json" \
-  -d "{\"jql\":\"project = $JIRA_PROJECT AND $JIRA_SPRINT_FIELD = \\\"$JIRA_SPRINT_NAME\\\"\",\"maxResults\":50,\"fields\":[\"summary\",\"description\",\"comment\",\"priority\",\"issuetype\"]}" \
+  -d "{\"jql\":\"project = $JIRA_PROJECT AND $JIRA_SPRINT_FIELD = \\\"$JIRA_SPRINT_NAME\\\" AND status = \\\"To Do\\\" AND originalEstimate is EMPTY\",\"maxResults\":50,\"fields\":[\"summary\",\"description\",\"comment\",\"priority\",\"issuetype\",\"timeoriginalestimate\"]}" \
   "$JIRA_BASE/rest/api/3/search/jql")
 
 TICKET_COUNT=$(echo "$RAW" | python3 -c "
@@ -96,24 +96,46 @@ for i in issues:
                         text+=inline.get('text','')+' '
         if text.strip():
             comments.append(f'{author}: {text.strip()[:300]}')
-    result.append({'key':i['key'],'summary':f['summary'],
+    import re
+    def clean(s):
+        s = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', ' ', str(s))
+        s = s.replace('\n',' ').replace('\r',' ').replace('\t',' ')
+        return ' '.join(s.split())
+    result.append({'key':i['key'],'summary':clean(f['summary']),
         'priority':f.get('priority',{}).get('name','Medium'),
         'type':f.get('issuetype',{}).get('name','Task'),
-        'desc':desc.strip()[:2000],'comments':comments})
-print(json.dumps(result))
+        'desc':clean(desc.strip())[:2000],'comments':[clean(c) for c in comments]})
+print(json.dumps(result, ensure_ascii=False))
 ")
 
 # ── Find unprocessed tickets (watcher may have done some already) ─────────────
-UNPROCESSED=$(python3 << PYEOF
-import json
-with open("$STATE_FILE") as f:
-    state = json.load(f)
-processed = set(state.get("processed",{}).keys())
-tickets   = json.loads("""$ALL_TICKETS""")
-remaining = [t for t in tickets if t["key"] not in processed
-             or state["processed"][t["key"]].get("status") == "failed"]
+# Write ALL_TICKETS to temp file to avoid heredoc/pipe stdin conflict
+_TMP_TICKETS=$(mktemp)
+echo "$ALL_TICKETS" > "$_TMP_TICKETS"
+
+UNPROCESSED=$(python3 - "$_TMP_TICKETS" "$STATE_FILE" << 'PYEOF'
+import json, sys
+
+tickets_file = sys.argv[1]
+state_file   = sys.argv[2]
+
+with open(tickets_file) as f:
+    tickets = json.load(f)
+
+try:
+    with open(state_file) as f:
+        state = json.load(f)
+except FileNotFoundError:
+    state = {"processed": {}}
+
+processed = state.get("processed", {})
+remaining = [t for t in tickets
+             if t["key"] not in processed
+             or processed[t["key"]].get("status") == "failed"]
 print(json.dumps(remaining))
 PYEOF
+)
+rm -f "$_TMP_TICKETS"
 )
 
 TODO_COUNT=$(echo "$UNPROCESSED" | python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))")
