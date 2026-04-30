@@ -3,7 +3,7 @@
 # 8-week rolling · repo contributions · LOC added/removed · week-over-week
 #
 # Schedule: Monday 11:30 AM IST = 6:00 AM UTC
-#   0 6 * * 1 /Users/agoyal/CoS/scripts/weekly/weekly-report.sh >> /Users/agoyal/CoS/logs/weekly-report.log 2>&1
+#   0 6 * * 1 /Users/agoyal/weekly-report.sh >> /Users/agoyal/standup-logs/weekly-report.log 2>&1
 #
 # Prerequisites:
 #   pip3 install reportlab matplotlib certifi
@@ -13,8 +13,8 @@
 set -euo pipefail
 
 # ── Config ────────────────────────────────────────────────────────────────────
-LOGDIR="$HOME/CoS/logs"
-REPORT_DIR="$HOME/CoS/logs/weekly-reports"
+LOGDIR="$HOME/standup-logs"
+REPORT_DIR="$HOME/standup-logs/weekly-reports"
 DATE=$(date +"%Y-%m-%d")
 PDF_FILE="$REPORT_DIR/team-report-$DATE.pdf"
 
@@ -23,6 +23,9 @@ ASANA_WORKSPACE="8437193015852"
 ASANA_ASSIGNEE="1211542692184092"
 GITHUB_ORG="sox-inscope salesforce"
 GH_BASE="https://github.groupondev.com/api/v3"
+GITHUB_SAAS_TOKEN="${GITHUB_SAAS_TOKEN:-}"   # PAT from github.com (separate token)
+GH_SAAS_BASE="https://api.github.com"
+GITHUB_SAAS_ORG="groupon"
 NUM_WEEKS=8
 
 mkdir -p "$LOGDIR" "$REPORT_DIR"
@@ -53,9 +56,15 @@ org_query   = " ".join(f"org:{o}" for o in orgs)
 pdf_file    = "$PDF_FILE"
 report_date = "$DATE"
 num_weeks   = int("$NUM_WEEKS")
-gh_base     = "$GH_BASE"
+gh_base      = "$GH_BASE"
+gh_saas_token= os.environ.get("GITHUB_SAAS_TOKEN", "")
+gh_saas_base = "$GH_SAAS_BASE"
+saas_org     = "$GITHUB_SAAS_ORG"
+saas_org_query = f"org:{saas_org}"
+has_saas     = bool(gh_saas_token)
 
-TEAM = {
+# Enterprise handles (github.groupondev.com)
+TEAM_ENT = {
     "Ashwinkrishna": "akrishnam",
     "Niveditha":     "niver",
     "Nirajkumar":    "nshelke",
@@ -66,6 +75,22 @@ TEAM = {
     "Datta":         "dmaddala",
     "Ravindra":      "ravikumar",
 }
+
+# SaaS handles (github.com/groupon)
+TEAM_SAAS = {
+    "Ashwinkrishna": "akrishnam-byte",
+    "Niveditha":     "niver22",
+    "Nirajkumar":    "nshelke-groupon",
+    "Kumar Ankit":   "kankit-grpn",
+    "Amit":          "amipatil-oss",
+    "Ravi Kumar":    "kumarra-bot",
+    "Rakesh":        None,
+    "Datta":         "dmaddala",
+    "Ravindra":      "ravikumar-rgb",
+}
+
+# Unified team list (all names across both sources)
+TEAM = {k: k for k in dict(**TEAM_ENT, **{k:v for k,v in TEAM_SAAS.items() if v})}
 
 # ── GitHub API helpers ─────────────────────────────────────────────────────────
 def gh_get(url, accept="application/vnd.github+json"):
@@ -83,6 +108,27 @@ def gh_get(url, accept="application/vnd.github+json"):
     except Exception as e:
         print(f"    API error: {e}")
         return {}
+
+def gh_saas_get(url, accept="application/vnd.github+json"):
+    if not has_saas:
+        return {}
+    req = urllib.request.Request(url, headers={
+        "Authorization":        f"Bearer {gh_saas_token}",
+        "Accept":               accept,
+        "X-GitHub-Api-Version": "2022-11-28",
+    })
+    try:
+        with urllib.request.urlopen(req, context=ctx, timeout=15) as r:
+            return json.loads(r.read().decode())
+    except:
+        return {}
+
+def gh_saas_count(q):
+    if not has_saas:
+        return 0
+    url = f"{gh_saas_base}/search/issues?q={urllib.request.quote(q)}&per_page=1"
+    d = gh_saas_get(url)
+    return d.get("total_count", 0)
 
 def gh_search_count(q):
     url = f"{gh_base}/search/issues?q={urllib.request.quote(q)}&per_page=1"
@@ -148,6 +194,14 @@ for wi, (start, end, lbl, short) in enumerate(weeks):
         prs_merged   = gh_search_count(f"is:pr author:{handle} {org_query} merged:{dr}")
         prs_reviewed = gh_search_count(f"is:pr reviewed-by:{handle} {org_query} updated:{dr}")
         comments     = gh_search_count(f"is:pr commenter:{handle} {org_query} updated:{dr}")
+
+        # Add SaaS (github.com/groupon) data if token available and handle exists
+        saas_handle = TEAM_SAAS.get(name)
+        if has_saas and saas_handle:
+            prs_created  += gh_saas_count(f"is:pr author:{saas_handle} {saas_org_query} created:{dr}")
+            prs_merged   += gh_saas_count(f"is:pr author:{saas_handle} {saas_org_query} merged:{dr}")
+            prs_reviewed += gh_saas_count(f"is:pr reviewed-by:{saas_handle} {saas_org_query} updated:{dr}")
+            comments     += gh_saas_count(f"is:pr commenter:{saas_handle} {saas_org_query} updated:{dr}")
         all_data[name].append({
             "prs_created": prs_created, "prs_merged": prs_merged,
             "prs_reviewed": prs_reviewed, "comments": comments,
